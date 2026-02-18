@@ -13,43 +13,43 @@
         .log-line { font-family: ui-monospace, monospace; }
         .pill { transition: all 0.2s cubic-bezier(0.4,0,0.2,1); }
         .pill:hover { transform: translateY(-2px) scale(1.03); }
-        #trafficCanvas { background: #18181b; border-radius: 24px; }
+        #trafficCanvas { background: #18181b; border-radius: 16px; }
     </style>
 </head>
 <body class="bg-zinc-950 text-zinc-200">
 <div class="min-h-screen flex">
     <!-- Sidebar -->
-    <div class="w-96 bg-zinc-900 border-r border-zinc-800 p-6 flex flex-col overflow-y-auto">
-        <div class="flex items-center gap-3 mb-8">
-            <div class="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-3xl flex items-center justify-center text-black font-black text-2xl">S</div>
+    <div class="w-80 bg-zinc-900 border-r border-zinc-800 p-4 flex flex-col overflow-y-auto">
+        <div class="flex items-center gap-2 mb-3">
+            <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-2xl flex items-center justify-center text-black font-black text-lg">S</div>
             <div>
-                <h1 class="text-3xl font-bold tracking-tighter">SubEnum <span class="text-xs text-violet-400 align-super">v4.4.1</span></h1>
-                <p class="text-xs text-zinc-500 -mt-1">Fixed subdomain enumeration</p>
+                <h1 class="text-xl font-bold tracking-tighter">SubEnum <span class="text-[10px] text-violet-400 align-super">v4.4.1</span></h1>
+                <p class="text-[10px] text-zinc-500 -mt-0.5">Fixed subdomain enumeration</p>
             </div>
         </div>
 
-        <div class="space-y-7">
+        <div class="space-y-3">
             <div>
-                <label class="block text-sm font-medium text-zinc-400 mb-1.5">TARGET DOMAIN</label>
-                <input id="target" type="text" value="pwndefend.com" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-4 text-lg focus:outline-none focus:border-violet-500">
+                <label class="block text-[10px] font-medium text-zinc-400 mb-1">TARGET DOMAIN</label>
+                <input id="target" type="text" value="pwndefend.com" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-3 py-2 text-sm focus:outline-none focus:border-violet-500">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-zinc-400 mb-3">DNS PROVIDERS (round-robin)</label>
-                <div id="providerCheckboxes" class="grid grid-cols-2 gap-2"></div>
-                <div class="mt-4 flex gap-3">
-                    <input id="customDoh" placeholder="https://your-doh.example.com/dns-query" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-3 text-sm font-mono">
-                    <button onclick="addCustomProvider()" class="bg-zinc-800 hover:bg-zinc-700 px-6 rounded-3xl text-sm font-medium">ADD</button>
+                <label class="block text-[10px] font-medium text-zinc-400 mb-1.5">DNS PROVIDERS</label>
+                <div id="providerCheckboxes" class="grid grid-cols-2 gap-1.5"></div>
+                <div class="mt-2 flex gap-2">
+                    <input id="customDoh" placeholder="https://doh.example.com/dns-query" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-3 py-1.5 text-[11px] font-mono">
+                    <button onclick="addCustomProvider()" class="bg-zinc-800 hover:bg-zinc-700 px-3 rounded-2xl text-[10px] font-medium">ADD</button>
                 </div>
-                <div id="customProvidersList" class="mt-3 space-y-1 text-xs"></div>
+                <div id="customProvidersList" class="mt-2 space-y-1 text-[10px]"></div>
             </div>
 
             <div>
-                <div class="flex justify-between items-center mb-1.5">
-                    <label class="block text-sm font-medium text-zinc-400">WORDLIST</label>
-                    <button onclick="uploadWordlist()" class="text-xs px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-1"><i class="fa-solid fa-upload"></i> Upload</button>
+                <div class="flex justify-between items-center mb-1">
+                    <label class="block text-[10px] font-medium text-zinc-400">WORDLIST</label>
+                    <button onclick="uploadWordlist()" class="text-[9px] px-2 py-0.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg flex items-center gap-1"><i class="fa-solid fa-upload text-[8px]"></i> Upload</button>
                 </div>
-                <textarea id="wordlist" rows="6" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl p-4 text-sm font-mono resize-none focus:outline-none focus:border-violet-500">www
+                <textarea id="wordlist" rows="3" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl p-2 text-[11px] font-mono resize-none focus:outline-none focus:border-violet-500 leading-tight">www
 api
 admin
 dev
@@ -68,51 +68,45 @@ dashboard
 cdn
 static
 assets
-media
-internal
-secure
-auth
-vpn
-git
-jenkins</textarea>
+media</textarea>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-zinc-400 mb-3">RECORD TYPES</label>
-                <div id="recordTypeCheckboxes" class="grid grid-cols-4 gap-2"></div>
+                <label class="block text-[10px] font-medium text-zinc-400 mb-1.5">RECORD TYPES</label>
+                <div id="recordTypeCheckboxes" class="grid grid-cols-4 gap-1"></div>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-zinc-400 mb-2">ROOT DOMAIN & PSL</label>
-                <div class="flex items-center gap-3 bg-zinc-800 rounded-3xl p-4">
-                    <input type="checkbox" id="usePSL" checked class="accent-violet-500 w-5 h-5">
-                    <div><div class="text-sm">Smart base detection</div><div class="text-xs text-zinc-500">Handles gov.uk, co.uk etc.</div></div>
+                <label class="block text-[10px] font-medium text-zinc-400 mb-1">PSL</label>
+                <div class="flex items-center gap-2 bg-zinc-800 rounded-2xl p-2">
+                    <input type="checkbox" id="usePSL" checked class="accent-violet-500 w-3 h-3">
+                    <div class="text-[10px]">Smart detection <span class="text-zinc-500">(gov.uk, co.uk)</span></div>
                 </div>
-                <button onclick="loadFullPSL()" class="mt-3 w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded-3xl text-sm font-medium flex items-center justify-center gap-2"><i class="fa-solid fa-globe"></i> Load Full PSL</button>
-                <div id="pslStatus" class="text-[10px] text-emerald-400 mt-1 text-center">Built-in PSL active</div>
+                <button onclick="loadFullPSL()" class="mt-1.5 w-full bg-zinc-800 hover:bg-zinc-700 py-1.5 rounded-2xl text-[10px] font-medium flex items-center justify-center gap-1.5"><i class="fa-solid fa-globe text-[9px]"></i> Load Full PSL</button>
+                <div id="pslStatus" class="text-[9px] text-emerald-400 mt-0.5 text-center">Built-in PSL active</div>
             </div>
 
-            <div id="wildcardStatus" class="hidden bg-amber-500/10 border border-amber-500/50 rounded-3xl p-4">
-                <div class="flex items-center gap-3 text-amber-400">
-                    <i class="fa-solid fa-triangle-exclamation text-xl"></i>
-                    <div><div class="font-semibold text-sm">WILDCARD DNS DETECTED</div><div id="wildcardDetail" class="text-xs">Random subdomains resolve</div></div>
+            <div id="wildcardStatus" class="hidden bg-amber-500/10 border border-amber-500/50 rounded-2xl p-2">
+                <div class="flex items-center gap-2 text-amber-400">
+                    <i class="fa-solid fa-triangle-exclamation text-sm"></i>
+                    <div><div class="font-semibold text-[10px]">WILDCARD</div><div id="wildcardDetail" class="text-[9px]">Random subs resolve</div></div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 bg-zinc-800 rounded-3xl p-4">
-                <input type="checkbox" id="debugEnabled" class="accent-violet-500 w-5 h-5">
-                <div><div class="text-sm font-medium">Enable Debug Logging</div><div class="text-xs text-zinc-500">Detailed queries in DEBUG tab</div></div>
+            <div class="flex items-center gap-2 bg-zinc-800 rounded-2xl p-2">
+                <input type="checkbox" id="debugEnabled" class="accent-violet-500 w-3 h-3">
+                <div class="text-[10px]">Debug logging <span class="text-zinc-500">(DEBUG tab)</span></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="block text-xs text-zinc-400 mb-1">CONCURRENCY</label>
+                    <label class="block text-[9px] text-zinc-400 mb-0.5">CONCURRENCY</label>
                     <input id="concurrency" type="range" min="5" max="100" value="25" class="w-full accent-violet-500">
-                    <div id="concurrencyValue" class="text-center text-sm font-mono text-violet-400">25</div>
+                    <div id="concurrencyValue" class="text-center text-[10px] font-mono text-violet-400">25</div>
                 </div>
                 <div>
-                    <label class="block text-xs text-zinc-400 mb-1">MAX DEPTH</label>
-                    <select id="maxDepth" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-4 text-sm">
+                    <label class="block text-[9px] text-zinc-400 mb-0.5">DEPTH</label>
+                    <select id="maxDepth" class="w-full bg-zinc-800 border border-zinc-700 rounded-2xl px-2 py-1.5 text-[11px]">
                         <option value="1">1</option>
                         <option value="2" selected>2</option>
                         <option value="3">3</option>
@@ -121,116 +115,116 @@ jenkins</textarea>
                 </div>
             </div>
 
-            <button onclick="startScan()" id="startBtn" class="w-full bg-violet-600 hover:bg-violet-500 py-4 rounded-3xl font-semibold flex items-center justify-center gap-2"><i class="fa-solid fa-bolt"></i> START SCAN</button>
-            <button onclick="stopScan()" id="stopBtn" class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-3xl hidden font-medium">STOP SCAN</button>
+            <button onclick="startScan()" id="startBtn" class="w-full bg-violet-600 hover:bg-violet-500 py-2.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2"><i class="fa-solid fa-bolt"></i> START</button>
+            <button onclick="stopScan()" id="stopBtn" class="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-2xl hidden font-medium text-sm">STOP</button>
         </div>
     </div>
 
     <!-- Main -->
     <div class="flex-1 flex flex-col">
-        <div class="border-b border-zinc-800 px-8 py-5 flex items-center justify-between bg-zinc-900">
-            <div class="flex gap-6">
-                <button onclick="showTab(0)" id="tab0" class="tab-btn active px-6 py-2 rounded-3xl text-sm font-medium">RESULTS</button>
-                <button onclick="showTab(1)" id="tab1" class="tab-btn px-6 py-2 rounded-3xl text-sm font-medium">LOG</button>
-                <button onclick="showTab(3)" id="debugTabBtn" class="tab-btn px-6 py-2 rounded-3xl text-sm font-medium hidden">DEBUG</button>
-                <button onclick="showTab(2)" id="tab2" class="tab-btn px-6 py-2 rounded-3xl text-sm font-medium">DASHBOARD</button>
-            </div>
+        <div class="border-b border-zinc-800 px-4 py-2.5 flex items-center justify-between bg-zinc-900">
             <div class="flex gap-3">
-                <button onclick="clearResults()" class="px-5 py-2 text-xs border border-zinc-700 rounded-3xl hover:bg-zinc-800">CLEAR</button>
-                <button onclick="exportCSV()" class="px-5 py-2 text-xs bg-zinc-800 hover:bg-zinc-700 rounded-3xl">EXPORT CSV</button>
+                <button onclick="showTab(0)" id="tab0" class="tab-btn active px-4 py-1.5 rounded-2xl text-[11px] font-medium">RESULTS</button>
+                <button onclick="showTab(1)" id="tab1" class="tab-btn px-4 py-1.5 rounded-2xl text-[11px] font-medium">LOG</button>
+                <button onclick="showTab(3)" id="debugTabBtn" class="tab-btn px-4 py-1.5 rounded-2xl text-[11px] font-medium hidden">DEBUG</button>
+                <button onclick="showTab(2)" id="tab2" class="tab-btn px-4 py-1.5 rounded-2xl text-[11px] font-medium">DASH</button>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="clearResults()" class="px-3 py-1 text-[10px] border border-zinc-700 rounded-2xl hover:bg-zinc-800">CLEAR</button>
+                <button onclick="exportCSV()" class="px-3 py-1 text-[10px] bg-zinc-800 hover:bg-zinc-700 rounded-2xl">CSV</button>
             </div>
         </div>
 
-        <div id="tabContent0" class="flex-1 overflow-auto p-8">
+        <div id="tabContent0" class="flex-1 overflow-auto p-3">
             <table class="w-full">
                 <thead class="bg-zinc-900 sticky top-0 z-10">
-                    <tr class="text-xs text-zinc-400 border-b border-zinc-800">
-                        <th class="py-5 px-6 text-left">#</th>
-                        <th class="py-5 px-6 text-left">SUBDOMAIN</th>
-                        <th class="py-5 px-6 text-left">IPs</th>
-                        <th class="py-5 px-6 text-left">CNAME</th>
-                        <th class="py-5 px-6 text-left">OTHER</th>
-                        <th class="py-5 px-6 text-left">DEPTH</th>
-                        <th class="py-5 px-6 w-20"></th>
+                    <tr class="text-[10px] text-zinc-400 border-b border-zinc-800">
+                        <th class="py-2 px-3 text-left">#</th>
+                        <th class="py-2 px-3 text-left">SUBDOMAIN</th>
+                        <th class="py-2 px-3 text-left">IPs</th>
+                        <th class="py-2 px-3 text-left">CNAME</th>
+                        <th class="py-2 px-3 text-left">OTHER</th>
+                        <th class="py-2 px-3 text-left">D</th>
+                        <th class="py-2 px-3 w-10"></th>
                     </tr>
                 </thead>
-                <tbody id="resultsBody" class="text-sm divide-y divide-zinc-800"></tbody>
+                <tbody id="resultsBody" class="text-[11px] divide-y divide-zinc-800"></tbody>
             </table>
         </div>
 
-        <div id="tabContent1" class="flex-1 overflow-auto p-8 hidden bg-black">
-            <div id="log" class="font-mono text-xs text-zinc-300 space-y-1 h-full overflow-auto"></div>
+        <div id="tabContent1" class="flex-1 overflow-auto p-3 hidden bg-black">
+            <div id="log" class="font-mono text-[10px] text-zinc-300 space-y-0.5 h-full overflow-auto"></div>
         </div>
 
-        <div id="tabContent3" class="flex-1 overflow-auto p-8 hidden bg-black">
-            <div id="debugLog" class="font-mono text-xs text-sky-300 space-y-1 h-full overflow-auto"></div>
+        <div id="tabContent3" class="flex-1 overflow-auto p-3 hidden bg-black">
+            <div id="debugLog" class="font-mono text-[10px] text-sky-300 space-y-0.5 h-full overflow-auto"></div>
         </div>
 
-        <div id="tabContent2" class="flex-1 overflow-auto p-8 hidden bg-zinc-950">
-            <div class="max-w-7xl mx-auto space-y-8">
-                <div class="grid grid-cols-4 gap-6">
-                    <div class="bg-zinc-900 rounded-3xl p-6">
-                        <div class="text-xs text-zinc-500">TOTAL QUERIES</div>
-                        <div id="statQueries" class="text-5xl font-bold text-white mt-2 font-mono">0</div>
+        <div id="tabContent2" class="flex-1 overflow-auto p-3 hidden bg-zinc-950">
+            <div class="max-w-7xl mx-auto space-y-3">
+                <div class="grid grid-cols-4 gap-2">
+                    <div class="bg-zinc-900 rounded-2xl p-2.5">
+                        <div class="text-[9px] text-zinc-500">QUERIES</div>
+                        <div id="statQueries" class="text-2xl font-bold text-white mt-0.5 font-mono">0</div>
                     </div>
-                    <div class="bg-zinc-900 rounded-3xl p-6">
-                        <div class="text-xs text-zinc-500">SUCCESSFUL</div>
-                        <div id="statSuccess" class="text-5xl font-bold text-emerald-400 mt-2 font-mono">0</div>
+                    <div class="bg-zinc-900 rounded-2xl p-2.5">
+                        <div class="text-[9px] text-zinc-500">SUCCESS</div>
+                        <div id="statSuccess" class="text-2xl font-bold text-emerald-400 mt-0.5 font-mono">0</div>
                     </div>
-                    <div class="bg-zinc-900 rounded-3xl p-6">
-                        <div class="text-xs text-zinc-500">RATE</div>
-                        <div id="statRate" class="text-5xl font-bold text-amber-400 mt-2 font-mono">0/s</div>
+                    <div class="bg-zinc-900 rounded-2xl p-2.5">
+                        <div class="text-[9px] text-zinc-500">RATE</div>
+                        <div id="statRate" class="text-2xl font-bold text-amber-400 mt-0.5 font-mono">0/s</div>
                     </div>
-                    <div class="bg-zinc-900 rounded-3xl p-6">
-                        <div class="text-xs text-zinc-500">SUCCESS %</div>
-                        <div id="statSuccessPct" class="text-5xl font-bold text-sky-400 mt-2 font-mono">0%</div>
+                    <div class="bg-zinc-900 rounded-2xl p-2.5">
+                        <div class="text-[9px] text-zinc-500">SUCCESS %</div>
+                        <div id="statSuccessPct" class="text-2xl font-bold text-sky-400 mt-0.5 font-mono">0%</div>
                     </div>
                 </div>
 
                 <div>
-                    <div class="text-sm font-medium text-zinc-400 mb-4">DNS PROVIDERS LIVE</div>
-                    <div id="providersGrid" class="grid grid-cols-3 gap-4"></div>
+                    <div class="text-[10px] font-medium text-zinc-400 mb-1.5">DNS PROVIDERS LIVE</div>
+                    <div id="providersGrid" class="grid grid-cols-3 gap-2"></div>
                 </div>
 
                 <div>
-                    <div class="text-sm font-medium text-zinc-400 mb-4 flex items-center gap-3">
-                        TRAFFIC FLOW • CLIENT → PROVIDERS
+                    <div class="text-[10px] font-medium text-zinc-400 mb-1.5 flex items-center gap-2">
+                        TRAFFIC FLOW
                         <div class="flex-1 h-px bg-zinc-800"></div>
                     </div>
-                    <canvas id="trafficCanvas" width="1100" height="220" class="w-full"></canvas>
+                    <canvas id="trafficCanvas" width="1100" height="150" class="w-full"></canvas>
                 </div>
 
-                <div class="grid grid-cols-2 gap-6">
-                    <div class="bg-zinc-900 rounded-3xl p-6">
-                        <div class="text-sm font-medium text-zinc-400 mb-4">RESOLUTIONS OVER TIME</div>
-                        <canvas id="lineChart" height="140"></canvas>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-zinc-900 rounded-2xl p-2.5">
+                        <div class="text-[10px] font-medium text-zinc-400 mb-1.5">RESOLUTIONS</div>
+                        <canvas id="lineChart" height="90"></canvas>
                     </div>
-                    <div class="bg-zinc-900 rounded-3xl p-6">
-                        <div class="text-sm font-medium text-zinc-400 mb-4">REQUESTS PER PROVIDER</div>
-                        <canvas id="barChart" height="140"></canvas>
+                    <div class="bg-zinc-900 rounded-2xl p-2.5">
+                        <div class="text-[10px] font-medium text-zinc-400 mb-1.5">REQUESTS/PROVIDER</div>
+                        <canvas id="barChart" height="90"></canvas>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- FIXED: Added missing progress section -->
-        <div id="progressSection" class="hidden border-t border-zinc-800 bg-zinc-900 px-8 py-4">
-            <div class="flex items-center gap-4">
+        <!-- Progress Section -->
+        <div id="progressSection" class="hidden border-t border-zinc-800 bg-zinc-900 px-4 py-2">
+            <div class="flex items-center gap-3">
                 <div class="flex-1">
-                    <div class="flex justify-between text-xs text-zinc-400 mb-2">
-                        <span>Progress: <span id="progressPercent">0%</span></span>
-                        <span>Depth: <span id="currentDepth">0</span></span>
-                        <span><span id="checksDone">0</span>/<span id="checksTotal">0</span> checks</span>
+                    <div class="flex justify-between text-[10px] text-zinc-400 mb-1">
+                        <span><span id="progressPercent">0%</span></span>
+                        <span>D:<span id="currentDepth">0</span></span>
+                        <span><span id="checksDone">0</span>/<span id="checksTotal">0</span></span>
                     </div>
-                    <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
                         <div id="progressBar" class="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-300" style="width: 0%"></div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="border-t border-zinc-800 bg-zinc-900 px-8 py-4 text-xs text-zinc-500 flex justify-between">
-            <div>v4.4.1 – Subdomain enumeration fixed</div>
+        <div class="border-t border-zinc-800 bg-zinc-900 px-4 py-2 text-[10px] text-zinc-500 flex justify-between">
+            <div>v4.4.1</div>
             <div id="status" class="font-mono">Ready</div>
         </div>
     </div>
@@ -253,10 +247,10 @@ jenkins</textarea>
                 l = l.trim();
                 if (l && !l.startsWith('//') && !l.startsWith('!')) psl.add(l.toLowerCase());
             });
-            status.textContent = `Full PSL loaded (${psl.size})`;
+            status.textContent = `PSL loaded (${psl.size})`;
             log('Full PSL loaded', 'success');
         } catch(e) {
-            status.textContent = 'Failed – using built-in';
+            status.textContent = 'Failed';
             log('PSL load failed: ' + e.message, 'error');
         }
     }
@@ -277,31 +271,31 @@ jenkins</textarea>
 
     // === WILDCARD ===
     let isWildcard = false;
-    let wildcardTestDomains = new Set(); // FIXED: Track wildcard test domains
+    let wildcardTestDomains = new Set();
 
     async function performWildcardCheck(base) {
-        log('🔍 Wildcard detection (3 random subs)...', 'info');
-        wildcardTestDomains.clear(); // FIXED: Clear previous test domains
+        log('🔍 Wildcard check...', 'info');
+        wildcardTestDomains.clear();
         const tests = [];
         for (let i = 0; i < 3; i++) {
             const randomSub = Math.random().toString(36).substring(2,14) + '.' + base;
             tests.push(randomSub);
-            wildcardTestDomains.add(randomSub); // FIXED: Track test domains
+            wildcardTestDomains.add(randomSub);
         }
         let detected = false;
         for (const t of tests) {
-            const r = await resolveSubdomainRaw(t); // FIXED: Use raw resolution to avoid adding to results
+            const r = await resolveSubdomainRaw(t);
             if (r.ips.length || r.cname || r.other) { detected = true; break; }
         }
         isWildcard = detected;
         const banner = document.getElementById('wildcardStatus');
         if (detected) {
             banner.classList.remove('hidden');
-            document.getElementById('wildcardDetail').textContent = `*.${base} is wildcard`;
-            log(`⚠️ WILDCARD DETECTED`, 'error');
+            document.getElementById('wildcardDetail').textContent = `*.${base}`;
+            log(`⚠️ WILDCARD`, 'error');
         } else {
             banner.classList.add('hidden');
-            log('✅ No wildcard detected', 'success');
+            log('✅ No wildcard', 'success');
         }
     }
 
@@ -347,12 +341,10 @@ jenkins</textarea>
     let totalChecks = 0, completedChecks = 0, currentDepth = 0;
     let trafficCtx, trafficParticles = [], animationFrame;
 
-    // FIXED: Better provider selection with validation
     function getSelectedProviders() { 
         const selected = [...defaultProviders.filter(p=>p.checked), ...customProviders];
         if (selected.length === 0) {
-            // FIXED: If no providers selected, return first default provider
-            log('⚠️ No providers selected, using Cloudflare', 'error');
+            log('⚠️ No providers, using Cloudflare', 'error');
             return [defaultProviders[0]];
         }
         return selected;
@@ -365,7 +357,6 @@ jenkins</textarea>
         return {url:p.url, name:p.name};
     }
 
-    // FIXED: Separate raw resolution (for wildcard checks) from result-adding resolution
     async function resolveSubdomainRaw(sub) {
         const types = Array.from(document.querySelectorAll('#recordTypeCheckboxes input:checked')).map(c=>c.value);
         const result = {ips:[], cname:null, other:''};
@@ -375,13 +366,12 @@ jenkins</textarea>
         providerStats[name].requests++;
         totalQueries++;
 
-        debugLog(`QUERY → ${name} | ${sub} | types:${types.join(',')}`);
+        debugLog(`QUERY → ${name} | ${sub} | ${types.join(',')}`);
 
         for (const type of types) {
             try {
-                // FIXED: Add timeout to prevent hanging requests
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
                 
                 const r = await fetch(`${url}?name=${encodeURIComponent(sub)}&type=${type}`, {
                     headers:{'Accept':'application/dns-json'},
@@ -403,7 +393,6 @@ jenkins</textarea>
             } catch(e){
                 if (e.name === 'AbortError') {
                     debugLog(`TIMEOUT ← ${name} | ${sub}`);
-                    log(`⏱️ Timeout: ${sub} via ${name}`, 'error');
                 } else {
                     debugLog(`ERROR ← ${name} | ${e.message}`);
                 }
@@ -414,7 +403,7 @@ jenkins</textarea>
         const success = result.ips.length || result.cname || result.other;
         if (success) { providerStats[name].successes++; totalSuccess++; }
 
-        debugLog(`RESULT ← ${sub} | success:${success} | IPs:${result.ips.length}`);
+        debugLog(`RESULT ← ${sub} | ${success} | ${result.ips.length}`);
 
         return result;
     }
@@ -422,14 +411,13 @@ jenkins</textarea>
     async function resolveSubdomain(sub) {
         const result = await resolveSubdomainRaw(sub);
         
-        // FIXED: Only add traffic particles when dashboard is visible to prevent memory buildup
         if (!document.getElementById('tabContent2').classList.contains('hidden')) {
             const success = result.ips.length || result.cname || result.other;
             const providers = getSelectedProviders();
             const providerName = Object.keys(providerStats)[Object.keys(providerStats).length - 1] || 'Unknown';
             trafficParticles.push({
                 x:80,
-                y:110,
+                y:75,
                 targetX:520+(providers.findIndex(p=>p.name===providerName)*180),
                 progress:0,
                 success:success,
@@ -443,21 +431,21 @@ jenkins</textarea>
     function initTrafficCanvas() { trafficCtx = document.getElementById('trafficCanvas').getContext('2d'); }
     
     function drawTraffic() {
-        trafficCtx.clearRect(0,0,1100,220);
-        trafficCtx.fillStyle = '#a855f7'; trafficCtx.beginPath(); trafficCtx.arc(80,110,28,0,Math.PI*2); trafficCtx.fill();
-        trafficCtx.fillStyle = '#fff'; trafficCtx.font = 'bold 13px monospace'; trafficCtx.textAlign='center'; trafficCtx.fillText('YOU',80,116);
+        trafficCtx.clearRect(0,0,1100,150);
+        trafficCtx.fillStyle = '#a855f7'; trafficCtx.beginPath(); trafficCtx.arc(80,75,24,0,Math.PI*2); trafficCtx.fill();
+        trafficCtx.fillStyle = '#fff'; trafficCtx.font = 'bold 11px monospace'; trafficCtx.textAlign='center'; trafficCtx.fillText('YOU',80,80);
         getSelectedProviders().forEach((p,i) => {
             const x = 520 + i*180;
-            trafficCtx.fillStyle = '#64748b'; trafficCtx.beginPath(); trafficCtx.arc(x,110,26,0,Math.PI*2); trafficCtx.fill();
-            trafficCtx.fillStyle = '#e0f2fe'; trafficCtx.font = '11px monospace'; trafficCtx.fillText(p.name.slice(0,8),x,115);
+            trafficCtx.fillStyle = '#64748b'; trafficCtx.beginPath(); trafficCtx.arc(x,75,22,0,Math.PI*2); trafficCtx.fill();
+            trafficCtx.fillStyle = '#e0f2fe'; trafficCtx.font = '10px monospace'; trafficCtx.fillText(p.name.slice(0,8),x,79);
         });
         for (let i=trafficParticles.length-1; i>=0; i--) {
             const p = trafficParticles[i];
             p.progress += 0.028;
             const x = p.x + (p.targetX - p.x) * p.progress;
-            const y = 110 + Math.sin(p.progress * Math.PI * 2) * 12;
+            const y = 75 + Math.sin(p.progress * Math.PI * 2) * 10;
             trafficCtx.fillStyle = p.color;
-            trafficCtx.beginPath(); trafficCtx.arc(x,y,6,0,Math.PI*2); trafficCtx.fill();
+            trafficCtx.beginPath(); trafficCtx.arc(x,y,5,0,Math.PI*2); trafficCtx.fill();
             if (p.progress >= 1) trafficParticles.splice(i,1);
         }
     }
@@ -468,7 +456,6 @@ jenkins</textarea>
         loop();
     }
     
-    // FIXED: Stop animation when not on dashboard tab
     function stopTrafficAnimation() {
         if (animationFrame) {
             cancelAnimationFrame(animationFrame);
@@ -511,7 +498,7 @@ jenkins</textarea>
         grid.innerHTML = getSelectedProviders().map(p => {
             const s = providerStats[p.name] || {requests:0,successes:0};
             const pct = s.requests ? Math.round((s.successes/s.requests)*100) : 0;
-            return `<div class="bg-zinc-900 rounded-3xl p-5 border border-zinc-800"><div class="flex justify-between items-start"><div><div class="font-semibold">${p.name}</div><div class="text-xs text-zinc-500">${p.url.split('//')[1].split('/')[0]}</div></div><div class="text-right"><div class="text-2xl font-mono text-emerald-400">${s.successes}</div><div class="text-xs text-zinc-500">success</div></div></div><div class="mt-4 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400" style="width:${pct}%"></div></div><div class="flex justify-between text-xs mt-1"><span class="font-mono">${s.requests} req</span><span class="text-emerald-400">${pct}%</span></div></div>`;
+            return `<div class="bg-zinc-900 rounded-2xl p-2.5 border border-zinc-800"><div class="flex justify-between items-start mb-2"><div><div class="font-semibold text-[11px]">${p.name}</div><div class="text-[9px] text-zinc-500">${p.url.split('//')[1].split('/')[0]}</div></div><div class="text-right"><div class="text-xl font-mono text-emerald-400">${s.successes}</div></div></div><div class="h-1.5 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400" style="width:${pct}%"></div></div><div class="flex justify-between text-[9px] mt-1"><span class="font-mono">${s.requests} req</span><span class="text-emerald-400">${pct}%</span></div></div>`;
         }).join('');
         updateCharts();
     }
@@ -526,7 +513,6 @@ jenkins</textarea>
         };
     }
 
-    // FIXED: Removed duplicate discovered.has() check
     function addResult(sub, res, depth) {
         if (!res.ips.length && !res.cname && !res.other) return;
         results.push({subdomain:sub, ips:res.ips, cname:res.cname, other:res.other, depth});
@@ -536,22 +522,20 @@ jenkins</textarea>
     function renderResults() {
         document.getElementById('resultsBody').innerHTML = results.map((r,i) => `
             <tr class="hover:bg-zinc-800/50">
-                <td class="py-4 px-6 text-zinc-500">${i+1}</td>
-                <td class="py-4 px-6 font-medium text-violet-300">${r.subdomain}</td>
-                <td class="py-4 px-6 text-xs font-mono">${r.ips.join('<br>')||'—'}</td>
-                <td class="py-4 px-6 text-xs font-mono text-amber-300">${r.cname||'—'}</td>
-                <td class="py-4 px-6 text-xs font-mono text-sky-300">${r.other||'—'}</td>
-                <td class="py-4 px-6"><span class="px-3 py-1 bg-zinc-800 rounded-full text-xs">${r.depth}</span></td>
-                <td class="py-4 px-6"><a href="https://${r.subdomain}" target="_blank" class="text-violet-400"><i class="fa-solid fa-external-link-alt"></i></a></td>
+                <td class="py-1.5 px-3 text-zinc-500">${i+1}</td>
+                <td class="py-1.5 px-3 font-medium text-violet-300">${r.subdomain}</td>
+                <td class="py-1.5 px-3 text-[10px] font-mono">${r.ips.join('<br>')||'—'}</td>
+                <td class="py-1.5 px-3 text-[10px] font-mono text-amber-300">${r.cname||'—'}</td>
+                <td class="py-1.5 px-3 text-[10px] font-mono text-sky-300">${r.other||'—'}</td>
+                <td class="py-1.5 px-3"><span class="px-1.5 py-0.5 bg-zinc-800 rounded-full text-[9px]">${r.depth}</span></td>
+                <td class="py-1.5 px-3"><a href="https://${r.subdomain}" target="_blank" class="text-violet-400 text-[10px]"><i class="fa-solid fa-external-link-alt"></i></a></td>
             </tr>
         `).join('');
     }
 
-    // FIXED: Calculate total checks upfront for accurate progress
     function calculateTotalChecks(bases, depth, maxDepth, wordlistSize) {
         if (depth > maxDepth) return 0;
         let total = bases.length * wordlistSize;
-        // Estimate recursive checks (worst case: all succeed)
         if (depth < maxDepth) {
             total += calculateTotalChecks(bases.map(() => wordlistSize).flat(), depth + 1, maxDepth, wordlistSize);
         }
@@ -562,8 +546,8 @@ jenkins</textarea>
         if (depth > maxDepth || stopRequested) return;
         currentDepth = depth;
         const words = document.getElementById('wordlist').value.trim().split('\n').map(w => w.trim()).filter(Boolean);
-        log(`Depth ${depth}: Checking ${words.length} words on ${bases.length} base(s)`, 'info');
-        debugLog(`Brute-force loop - depth:${depth} words:${words.length} bases:${bases.length}`);
+        log(`D${depth}: ${words.length} × ${bases.length}`, 'info');
+        debugLog(`BF depth:${depth} words:${words.length} bases:${bases.length}`);
 
         const next = [];
         for (const base of bases) {
@@ -571,14 +555,13 @@ jenkins</textarea>
                 if (stopRequested) break;
                 const sub = `${word}.${base}`;
                 
-                // FIXED: Skip if already discovered OR if it's a wildcard test domain
                 if (discovered.has(sub) || wildcardTestDomains.has(sub)) {
                     completedChecks++;
                     updateProgress();
                     continue;
                 }
                 
-                discovered.add(sub); // Add to discovered set
+                discovered.add(sub);
 
                 completedChecks++;
                 updateProgress();
@@ -596,7 +579,7 @@ jenkins</textarea>
         }
         
         if (next.length && depth < maxDepth && !stopRequested) {
-            log(`→ Recursing to depth ${depth+1} (${next.length} new bases)`, 'info');
+            log(`→ D${depth+1} (${next.length})`, 'info');
             await bruteForce(next, depth+1, maxDepth, limiter, wordlistSize);
         }
     }
@@ -622,12 +605,12 @@ jenkins</textarea>
         const base = usePSL ? getRegistrableDomain(target) : target;
 
         log(`Target: ${target}`, 'info');
-        log(`Base domain: ${base}`, 'success');
-        debugLog(`=== SCAN START === Target=${target} | Base=${base}`);
+        log(`Base: ${base}`, 'success');
+        debugLog(`=== START === ${target} | ${base}`);
 
         await performWildcardCheck(base);
 
-        log('Enumerating root domain...', 'info');
+        log('Root enum...', 'info');
         const rootRes = await resolveSubdomain(target);
         addResult(target, rootRes, 0);
 
@@ -635,17 +618,15 @@ jenkins</textarea>
         const maxD = parseInt(document.getElementById('maxDepth').value);
         const limiter = createLimiter(conc);
         
-        // FIXED: Calculate total checks upfront
         const wordlistSize = document.getElementById('wordlist').value.trim().split('\n').filter(Boolean).length;
-        totalChecks = wordlistSize; // First depth
+        totalChecks = wordlistSize;
         if (maxD > 1) {
-            // Add estimate for recursive checks (conservative: assume 10% success rate)
             totalChecks += Math.floor(wordlistSize * wordlistSize * 0.1 * (maxD - 1));
         }
 
         document.getElementById('progressSection').classList.remove('hidden');
 
-        log(`Starting subdomain enumeration on ${base}...`, 'info');
+        log(`Starting on ${base}...`, 'info');
         await bruteForce([base], 1, maxD, limiter, wordlistSize);
 
         finishScan();
@@ -661,7 +642,7 @@ jenkins</textarea>
         document.getElementById('debugLog').innerHTML = '';
         document.getElementById('log').innerHTML = '';
         document.getElementById('resultsBody').innerHTML = '';
-        trafficParticles = []; // FIXED: Clear particles
+        trafficParticles = [];
         document.getElementById('startBtn').classList.add('opacity-50','cursor-not-allowed');
         document.getElementById('stopBtn').classList.remove('hidden');
         document.getElementById('progressSection').classList.add('hidden');
@@ -672,22 +653,22 @@ jenkins</textarea>
         document.getElementById('startBtn').classList.remove('opacity-50','cursor-not-allowed');
         document.getElementById('stopBtn').classList.add('hidden');
         document.getElementById('progressSection').classList.add('hidden');
-        log('✅ Scan completed!', 'success');
-        debugLog('=== SCAN FINISHED ===');
+        log('✅ Complete!', 'success');
+        debugLog('=== DONE ===');
     }
 
     function stopScan() { 
         stopRequested = true; 
-        log('⏹ Stop requested', 'error'); 
-        debugLog('STOP REQUESTED'); 
+        log('⏹ Stopping', 'error'); 
+        debugLog('STOP'); 
     }
 
     function clearResults() {
-        if (confirm('Clear all results?')) {
+        if (confirm('Clear results?')) {
             results = []; 
             discovered = new Set();
             document.getElementById('resultsBody').innerHTML = '';
-            log('Results cleared', 'info');
+            log('Cleared', 'info');
         }
     }
 
@@ -705,10 +686,10 @@ jenkins</textarea>
 
     function initUI() {
         const pDiv = document.getElementById('providerCheckboxes');
-        defaultProviders.forEach((p,i) => pDiv.innerHTML += `<label class="pill flex items-center gap-2 bg-zinc-800 px-4 py-3 rounded-3xl cursor-pointer"><input type="checkbox" ${p.checked?'checked':''} onchange="defaultProviders[${i}].checked=this.checked" class="accent-violet-500"><span>${p.name}</span></label>`);
+        defaultProviders.forEach((p,i) => pDiv.innerHTML += `<label class="pill flex items-center gap-1.5 bg-zinc-800 px-2 py-1.5 rounded-2xl cursor-pointer text-[10px]"><input type="checkbox" ${p.checked?'checked':''} onchange="defaultProviders[${i}].checked=this.checked" class="accent-violet-500 w-3 h-3"><span>${p.name}</span></label>`);
 
         const rDiv = document.getElementById('recordTypeCheckboxes');
-        recordTypeList.forEach(r => rDiv.innerHTML += `<label class="pill flex items-center gap-2 bg-zinc-800 px-4 py-3 rounded-3xl cursor-pointer"><input type="checkbox" value="${r.value}" ${r.checked?'checked':''} class="accent-violet-500"><span>${r.label}</span></label>`);
+        recordTypeList.forEach(r => rDiv.innerHTML += `<label class="pill flex items-center gap-1 bg-zinc-800 px-2 py-1.5 rounded-2xl cursor-pointer text-[10px]"><input type="checkbox" value="${r.value}" ${r.checked?'checked':''} class="accent-violet-500 w-3 h-3"><span>${r.label}</span></label>`);
 
         document.getElementById('concurrency').addEventListener('input', e => document.getElementById('concurrencyValue').textContent = e.target.value);
     }
@@ -719,7 +700,6 @@ jenkins</textarea>
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active','bg-zinc-800'));
         document.getElementById('tab'+n).classList.add('active','bg-zinc-800');
         
-        // FIXED: Start/stop traffic animation based on dashboard visibility
         if (n === 2) { 
             updateDashboard(); 
             if (!animationFrame) startTrafficAnimation(); 
@@ -728,13 +708,12 @@ jenkins</textarea>
         }
     }
 
-    // FIXED: Proper custom provider management
     function renderCustomProviders() {
         document.getElementById('customProvidersList').innerHTML = 
             customProviders.map((p,i) => 
-                `<div class="flex justify-between bg-zinc-800 rounded-2xl px-4 py-2 text-xs">
-                    <span class="font-mono">${p.url}</span>
-                    <button onclick="removeCustom(${i})" class="text-red-400 hover:text-red-300">×</button>
+                `<div class="flex justify-between bg-zinc-800 rounded-xl px-2 py-1 text-[10px]">
+                    <span class="font-mono truncate">${p.url}</span>
+                    <button onclick="removeCustom(${i})" class="text-red-400 hover:text-red-300 ml-2">×</button>
                 </div>`
             ).join('');
     }
@@ -743,20 +722,20 @@ jenkins</textarea>
         const url = document.getElementById('customDoh').value.trim();
         if (!url) return;
         if (!url.startsWith('https://')) {
-            alert('DoH URL must start with https://');
+            alert('Must start with https://');
             return;
         }
         customProviders.push({name:url.split('//')[1]?.split('/')[0]||'Custom',url});
         renderCustomProviders();
         document.getElementById('customDoh').value = '';
-        log(`Custom provider added: ${url}`, 'success');
+        log(`Added: ${url}`, 'success');
     }
 
     function removeCustom(i) { 
         const removed = customProviders[i];
         customProviders.splice(i,1); 
         renderCustomProviders();
-        log(`Custom provider removed: ${removed.url}`, 'info');
+        log(`Removed: ${removed.url}`, 'info');
     }
 
     function uploadWordlist() { document.getElementById('wordlistUpload').click(); }
@@ -768,7 +747,7 @@ jenkins</textarea>
         reader.onload = ev => {
             document.getElementById('wordlist').value = ev.target.result;
             const lineCount = ev.target.result.split('\n').filter(Boolean).length;
-            log(`Wordlist loaded: ${file.name} (${lineCount} entries)`, 'success');
+            log(`Loaded: ${file.name} (${lineCount})`, 'success');
         };
         reader.readAsText(file);
     }
@@ -782,15 +761,11 @@ jenkins</textarea>
         document.getElementById('debugEnabled').addEventListener('change', e => {
             debugEnabled = e.target.checked;
             document.getElementById('debugTabBtn').classList.toggle('hidden', !debugEnabled);
-            if (debugEnabled) {
-                log('Debug logging enabled', 'success');
-            }
+            if (debugEnabled) log('Debug enabled', 'success');
         });
 
-        log('SubEnum v4.4.1 ready – all fixes applied', 'success');
-        log('Tip: Enable Debug Logging to see everything', 'info');
+        log('SubEnum v4.4.1 ready', 'success');
 
-        // FIXED: Debounced dashboard updates
         let updateTimeout;
         setInterval(() => {
             if (isRunning || !document.getElementById('tabContent2').classList.contains('hidden')) {
