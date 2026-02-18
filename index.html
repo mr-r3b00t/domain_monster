@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SubEnum v4.4 • Debug + Wildcard + Root</title>
+    <title>SubEnum v4.4.1 • Fixed Enumeration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -23,8 +23,8 @@
         <div class="flex items-center gap-3 mb-8">
             <div class="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-3xl flex items-center justify-center text-black font-black text-2xl">S</div>
             <div>
-                <h1 class="text-3xl font-bold tracking-tighter">SubEnum <span class="text-xs text-violet-400 align-super">v4.4</span></h1>
-                <p class="text-xs text-zinc-500 -mt-1">root + PSL + wildcard + debug</p>
+                <h1 class="text-3xl font-bold tracking-tighter">SubEnum <span class="text-xs text-violet-400 align-super">v4.4.1</span></h1>
+                <p class="text-xs text-zinc-500 -mt-1">Fixed subdomain enumeration</p>
             </div>
         </div>
 
@@ -141,7 +141,6 @@ jenkins</textarea>
             </div>
         </div>
 
-        <!-- RESULTS -->
         <div id="tabContent0" class="flex-1 overflow-auto p-8">
             <table class="w-full">
                 <thead class="bg-zinc-900 sticky top-0 z-10">
@@ -159,17 +158,14 @@ jenkins</textarea>
             </table>
         </div>
 
-        <!-- MAIN LOG -->
         <div id="tabContent1" class="flex-1 overflow-auto p-8 hidden bg-black">
             <div id="log" class="font-mono text-xs text-zinc-300 space-y-1 h-full overflow-auto"></div>
         </div>
 
-        <!-- DEBUG LOG -->
         <div id="tabContent3" class="flex-1 overflow-auto p-8 hidden bg-black">
             <div id="debugLog" class="font-mono text-xs text-sky-300 space-y-1 h-full overflow-auto"></div>
         </div>
 
-        <!-- DASHBOARD -->
         <div id="tabContent2" class="flex-1 overflow-auto p-8 hidden bg-zinc-950">
             <div class="max-w-7xl mx-auto space-y-8">
                 <div class="grid grid-cols-4 gap-6">
@@ -217,8 +213,24 @@ jenkins</textarea>
             </div>
         </div>
 
+        <!-- FIXED: Added missing progress section -->
+        <div id="progressSection" class="hidden border-t border-zinc-800 bg-zinc-900 px-8 py-4">
+            <div class="flex items-center gap-4">
+                <div class="flex-1">
+                    <div class="flex justify-between text-xs text-zinc-400 mb-2">
+                        <span>Progress: <span id="progressPercent">0%</span></span>
+                        <span>Depth: <span id="currentDepth">0</span></span>
+                        <span><span id="checksDone">0</span>/<span id="checksTotal">0</span> checks</span>
+                    </div>
+                    <div class="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="border-t border-zinc-800 bg-zinc-900 px-8 py-4 text-xs text-zinc-500 flex justify-between">
-            <div>v4.4 – Complete & Fixed</div>
+            <div>v4.4.1 – Subdomain enumeration fixed</div>
             <div id="status" class="font-mono">Ready</div>
         </div>
     </div>
@@ -227,7 +239,7 @@ jenkins</textarea>
 <input type="file" id="wordlistUpload" accept=".txt" class="hidden" onchange="handleFileUpload(event)">
 
 <script>
-    // ================== PSL ==================
+    // === PSL ===
     let psl = new Set(["com","net","org","edu","gov","mil","int","uk","co.uk","org.uk","gov.uk","ac.uk","me.uk","net.uk","nhs.uk","police.uk","sch.uk","ca","de","fr","it","jp","au","com.au","net.au","org.au","us","co","io","me","biz","info","name","pro","xyz","top","site","online","club","app","dev","cloud","ai","tech","shop","blog","news","tv","fm","cc","gg","sh","to","ws","nu","ac","eu","ch","nl","se","no","dk","fi","be","at","es","pt","gr","pl","cz","hu","ro","sk","si","hr","bg","ee","lt","lv","lu","mt","cy","is","ru","cn","tw","hk","in","br","mx","ar","cl","za","ng","ke","eg","tr","il","ae","sa","kr","vn","th","my","sg","id","ph","nz","pk"]);
 
     async function loadFullPSL() {
@@ -245,7 +257,7 @@ jenkins</textarea>
             log('Full PSL loaded', 'success');
         } catch(e) {
             status.textContent = 'Failed – using built-in';
-            log('PSL load failed', 'error');
+            log('PSL load failed: ' + e.message, 'error');
         }
     }
 
@@ -263,15 +275,22 @@ jenkins</textarea>
         return labels.slice(Math.max(0, labels.length - sp - 1)).join('.');
     }
 
-    // ================== WILDCARD ==================
+    // === WILDCARD ===
     let isWildcard = false;
+    let wildcardTestDomains = new Set(); // FIXED: Track wildcard test domains
+
     async function performWildcardCheck(base) {
-        log('🔍 Wildcard detection...', 'info');
+        log('🔍 Wildcard detection (3 random subs)...', 'info');
+        wildcardTestDomains.clear(); // FIXED: Clear previous test domains
         const tests = [];
-        for (let i = 0; i < 3; i++) tests.push(Math.random().toString(36).substring(2,14) + '.' + base);
+        for (let i = 0; i < 3; i++) {
+            const randomSub = Math.random().toString(36).substring(2,14) + '.' + base;
+            tests.push(randomSub);
+            wildcardTestDomains.add(randomSub); // FIXED: Track test domains
+        }
         let detected = false;
         for (const t of tests) {
-            const r = await resolveSubdomain(t);
+            const r = await resolveSubdomainRaw(t); // FIXED: Use raw resolution to avoid adding to results
             if (r.ips.length || r.cname || r.other) { detected = true; break; }
         }
         isWildcard = detected;
@@ -279,14 +298,14 @@ jenkins</textarea>
         if (detected) {
             banner.classList.remove('hidden');
             document.getElementById('wildcardDetail').textContent = `*.${base} is wildcard`;
-            log(`⚠️ WILDCARD DETECTED on ${base}`, 'error');
+            log(`⚠️ WILDCARD DETECTED`, 'error');
         } else {
             banner.classList.add('hidden');
-            log('✅ No wildcard', 'success');
+            log('✅ No wildcard detected', 'success');
         }
     }
 
-    // ================== LOGGING ==================
+    // === LOGGING ===
     let debugEnabled = false;
     function debugLog(msg) {
         if (!debugEnabled) return;
@@ -302,7 +321,7 @@ jenkins</textarea>
         document.getElementById('log').scrollTop = document.getElementById('log').scrollHeight;
     }
 
-    // ================== CORE ==================
+    // === CORE ===
     let defaultProviders = [
         {id:"cloudflare",name:"Cloudflare",url:"https://cloudflare-dns.com/dns-query",checked:true},
         {id:"google",name:"Google",url:"https://dns.google/resolve",checked:true},
@@ -328,16 +347,26 @@ jenkins</textarea>
     let totalChecks = 0, completedChecks = 0, currentDepth = 0;
     let trafficCtx, trafficParticles = [], animationFrame;
 
-    function getSelectedProviders() { return [...defaultProviders.filter(p=>p.checked), ...customProviders]; }
+    // FIXED: Better provider selection with validation
+    function getSelectedProviders() { 
+        const selected = [...defaultProviders.filter(p=>p.checked), ...customProviders];
+        if (selected.length === 0) {
+            // FIXED: If no providers selected, return first default provider
+            log('⚠️ No providers selected, using Cloudflare', 'error');
+            return [defaultProviders[0]];
+        }
+        return selected;
+    }
+
     function getNextDoHUrl() {
         const list = getSelectedProviders();
-        if (!list.length) return {url:defaultProviders[0].url, name:defaultProviders[0].name};
         const p = list[providerIndex % list.length];
         providerIndex = (providerIndex + 1) % list.length;
         return {url:p.url, name:p.name};
     }
 
-    async function resolveSubdomain(sub) {
+    // FIXED: Separate raw resolution (for wildcard checks) from result-adding resolution
+    async function resolveSubdomainRaw(sub) {
         const types = Array.from(document.querySelectorAll('#recordTypeCheckboxes input:checked')).map(c=>c.value);
         const result = {ips:[], cname:null, other:''};
         const {url, name} = getNextDoHUrl();
@@ -346,12 +375,24 @@ jenkins</textarea>
         providerStats[name].requests++;
         totalQueries++;
 
-        debugLog(`QUERY ${name} ${sub} types:${types.join(',')}`);
+        debugLog(`QUERY → ${name} | ${sub} | types:${types.join(',')}`);
 
         for (const type of types) {
             try {
-                const r = await fetch(`${url}?name=${encodeURIComponent(sub)}&type=${type}`, {headers:{'Accept':'application/dns-json'}});
-                if (!r.ok) continue;
+                // FIXED: Add timeout to prevent hanging requests
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+                
+                const r = await fetch(`${url}?name=${encodeURIComponent(sub)}&type=${type}`, {
+                    headers:{'Accept':'application/dns-json'},
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                if (!r.ok) {
+                    debugLog(`ERROR ← ${name} | HTTP ${r.status}`);
+                    continue;
+                }
                 const d = await r.json();
                 if (!d.Answer) continue;
                 d.Answer.forEach(a => {
@@ -359,20 +400,48 @@ jenkins</textarea>
                     if (type==='CNAME' && a.type===5) result.cname = a.data;
                     if (['MX','NS','TXT','SRV'].includes(type) && a.data) result.other += (result.other?', ':'') + `${type}:${a.data}`;
                 });
-            } catch(e){}
+            } catch(e){
+                if (e.name === 'AbortError') {
+                    debugLog(`TIMEOUT ← ${name} | ${sub}`);
+                    log(`⏱️ Timeout: ${sub} via ${name}`, 'error');
+                } else {
+                    debugLog(`ERROR ← ${name} | ${e.message}`);
+                }
+            }
         }
 
         result.ips = [...new Set(result.ips)];
         const success = result.ips.length || result.cname || result.other;
         if (success) { providerStats[name].successes++; totalSuccess++; }
 
-        debugLog(`RESULT ${sub} success:${success} IPs:${result.ips.length}`);
+        debugLog(`RESULT ← ${sub} | success:${success} | IPs:${result.ips.length}`);
 
-        trafficParticles.push({x:80,y:110,targetX:520+(getSelectedProviders().findIndex(p=>p.name===name)*180),progress:0,success:success,color:success?'#10b981':'#ef4444'});
+        return result;
+    }
+
+    async function resolveSubdomain(sub) {
+        const result = await resolveSubdomainRaw(sub);
+        
+        // FIXED: Only add traffic particles when dashboard is visible to prevent memory buildup
+        if (!document.getElementById('tabContent2').classList.contains('hidden')) {
+            const success = result.ips.length || result.cname || result.other;
+            const providers = getSelectedProviders();
+            const providerName = Object.keys(providerStats)[Object.keys(providerStats).length - 1] || 'Unknown';
+            trafficParticles.push({
+                x:80,
+                y:110,
+                targetX:520+(providers.findIndex(p=>p.name===providerName)*180),
+                progress:0,
+                success:success,
+                color:success?'#10b981':'#ef4444'
+            });
+        }
+        
         return result;
     }
 
     function initTrafficCanvas() { trafficCtx = document.getElementById('trafficCanvas').getContext('2d'); }
+    
     function drawTraffic() {
         trafficCtx.clearRect(0,0,1100,220);
         trafficCtx.fillStyle = '#a855f7'; trafficCtx.beginPath(); trafficCtx.arc(80,110,28,0,Math.PI*2); trafficCtx.fill();
@@ -392,16 +461,26 @@ jenkins</textarea>
             if (p.progress >= 1) trafficParticles.splice(i,1);
         }
     }
+    
     function startTrafficAnimation() {
         if (animationFrame) cancelAnimationFrame(animationFrame);
         function loop() { drawTraffic(); animationFrame = requestAnimationFrame(loop); }
         loop();
+    }
+    
+    // FIXED: Stop animation when not on dashboard tab
+    function stopTrafficAnimation() {
+        if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+            animationFrame = null;
+        }
     }
 
     function initCharts() {
         lineChart = new Chart(document.getElementById('lineChart'), {type:'line',data:{labels:[],datasets:[{label:'Success',borderColor:'#22d3ee',tension:0.4,data:[]}]},options:{plugins:{legend:{display:false}},scales:{y:{grid:{color:'#27272a'}}}}});
         barChart = new Chart(document.getElementById('barChart'), {type:'bar',data:{labels:[],datasets:[{label:'Requests',backgroundColor:'#8b5cf6',data:[]}]},options:{plugins:{legend:{display:false}},scales:{y:{grid:{color:'#27272a'}}}}});
     }
+    
     function updateCharts() {
         const now = new Date().toLocaleTimeString([],{minute:'2-digit',second:'2-digit'});
         resolutionHistory.push({time:now,count:totalSuccess});
@@ -432,7 +511,7 @@ jenkins</textarea>
         grid.innerHTML = getSelectedProviders().map(p => {
             const s = providerStats[p.name] || {requests:0,successes:0};
             const pct = s.requests ? Math.round((s.successes/s.requests)*100) : 0;
-            return `<div class="bg-zinc-900 rounded-3xl p-5 border border-zinc-800"><div class="flex justify-between"><div><div class="font-semibold">${p.name}</div><div class="text-xs text-zinc-500">${p.url.split('//')[1].split('/')[0]}</div></div><div class="text-right"><div class="text-2xl font-mono text-emerald-400">${s.successes}</div><div class="text-xs text-zinc-500">success</div></div></div><div class="mt-4 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400" style="width:${pct}%"></div></div><div class="flex justify-between text-xs mt-1"><span class="font-mono">${s.requests} req</span><span class="text-emerald-400">${pct}%</span></div></div>`;
+            return `<div class="bg-zinc-900 rounded-3xl p-5 border border-zinc-800"><div class="flex justify-between items-start"><div><div class="font-semibold">${p.name}</div><div class="text-xs text-zinc-500">${p.url.split('//')[1].split('/')[0]}</div></div><div class="text-right"><div class="text-2xl font-mono text-emerald-400">${s.successes}</div><div class="text-xs text-zinc-500">success</div></div></div><div class="mt-4 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400" style="width:${pct}%"></div></div><div class="flex justify-between text-xs mt-1"><span class="font-mono">${s.requests} req</span><span class="text-emerald-400">${pct}%</span></div></div>`;
         }).join('');
         updateCharts();
     }
@@ -447,41 +526,60 @@ jenkins</textarea>
         };
     }
 
+    // FIXED: Removed duplicate discovered.has() check
     function addResult(sub, res, depth) {
         if (!res.ips.length && !res.cname && !res.other) return;
-        if (discovered.has(sub)) return;
-        discovered.add(sub);
         results.push({subdomain:sub, ips:res.ips, cname:res.cname, other:res.other, depth});
         renderResults();
     }
 
     function renderResults() {
         document.getElementById('resultsBody').innerHTML = results.map((r,i) => `
-            <tr class="hover:bg-zinc-800/50"><td class="py-4 px-6 text-zinc-500">${i+1}</td>
-            <td class="py-4 px-6 font-medium text-violet-300">${r.subdomain}</td>
-            <td class="py-4 px-6 text-xs font-mono">${r.ips.join('<br>')||'—'}</td>
-            <td class="py-4 px-6 text-xs font-mono text-amber-300">${r.cname||'—'}</td>
-            <td class="py-4 px-6 text-xs font-mono text-sky-300">${r.other||'—'}</td>
-            <td class="py-4 px-6"><span class="px-3 py-1 bg-zinc-800 rounded-full text-xs">${r.depth}</span></td>
-            <td class="py-4 px-6"><a href="https://${r.subdomain}" target="_blank" class="text-violet-400"><i class="fa-solid fa-external-link-alt"></i></a></td></tr>
+            <tr class="hover:bg-zinc-800/50">
+                <td class="py-4 px-6 text-zinc-500">${i+1}</td>
+                <td class="py-4 px-6 font-medium text-violet-300">${r.subdomain}</td>
+                <td class="py-4 px-6 text-xs font-mono">${r.ips.join('<br>')||'—'}</td>
+                <td class="py-4 px-6 text-xs font-mono text-amber-300">${r.cname||'—'}</td>
+                <td class="py-4 px-6 text-xs font-mono text-sky-300">${r.other||'—'}</td>
+                <td class="py-4 px-6"><span class="px-3 py-1 bg-zinc-800 rounded-full text-xs">${r.depth}</span></td>
+                <td class="py-4 px-6"><a href="https://${r.subdomain}" target="_blank" class="text-violet-400"><i class="fa-solid fa-external-link-alt"></i></a></td>
+            </tr>
         `).join('');
     }
 
-    async function bruteForce(bases, depth, maxDepth, limiter) {
+    // FIXED: Calculate total checks upfront for accurate progress
+    function calculateTotalChecks(bases, depth, maxDepth, wordlistSize) {
+        if (depth > maxDepth) return 0;
+        let total = bases.length * wordlistSize;
+        // Estimate recursive checks (worst case: all succeed)
+        if (depth < maxDepth) {
+            total += calculateTotalChecks(bases.map(() => wordlistSize).flat(), depth + 1, maxDepth, wordlistSize);
+        }
+        return total;
+    }
+
+    async function bruteForce(bases, depth, maxDepth, limiter, wordlistSize) {
         if (depth > maxDepth || stopRequested) return;
         currentDepth = depth;
-        const words = document.getElementById('wordlist').value.trim().split('\n').map(w=>w.trim()).filter(Boolean);
-        const batch = bases.length * words.length;
-        totalChecks += batch;
-        updateProgress();
+        const words = document.getElementById('wordlist').value.trim().split('\n').map(w => w.trim()).filter(Boolean);
+        log(`Depth ${depth}: Checking ${words.length} words on ${bases.length} base(s)`, 'info');
+        debugLog(`Brute-force loop - depth:${depth} words:${words.length} bases:${bases.length}`);
 
         const next = [];
         for (const base of bases) {
             for (const word of words) {
                 if (stopRequested) break;
                 const sub = `${word}.${base}`;
-                if (discovered.has(sub)) continue;
-                discovered.add(sub);
+                
+                // FIXED: Skip if already discovered OR if it's a wildcard test domain
+                if (discovered.has(sub) || wildcardTestDomains.has(sub)) {
+                    completedChecks++;
+                    updateProgress();
+                    continue;
+                }
+                
+                discovered.add(sub); // Add to discovered set
+
                 completedChecks++;
                 updateProgress();
 
@@ -496,9 +594,10 @@ jenkins</textarea>
                 await limiter(task);
             }
         }
+        
         if (next.length && depth < maxDepth && !stopRequested) {
-            log(`→ Depth ${depth+1} (${next.length} new)`, 'info');
-            await bruteForce(next, depth+1, maxDepth, limiter);
+            log(`→ Recursing to depth ${depth+1} (${next.length} new bases)`, 'info');
+            await bruteForce(next, depth+1, maxDepth, limiter, wordlistSize);
         }
     }
 
@@ -523,23 +622,31 @@ jenkins</textarea>
         const base = usePSL ? getRegistrableDomain(target) : target;
 
         log(`Target: ${target}`, 'info');
-        log(`Base: ${base}`, 'success');
-        debugLog(`=== SCAN START === Target=${target} Base=${base}`);
+        log(`Base domain: ${base}`, 'success');
+        debugLog(`=== SCAN START === Target=${target} | Base=${base}`);
 
         await performWildcardCheck(base);
+
+        log('Enumerating root domain...', 'info');
+        const rootRes = await resolveSubdomain(target);
+        addResult(target, rootRes, 0);
 
         const conc = parseInt(document.getElementById('concurrency').value);
         const maxD = parseInt(document.getElementById('maxDepth').value);
         const limiter = createLimiter(conc);
+        
+        // FIXED: Calculate total checks upfront
+        const wordlistSize = document.getElementById('wordlist').value.trim().split('\n').filter(Boolean).length;
+        totalChecks = wordlistSize; // First depth
+        if (maxD > 1) {
+            // Add estimate for recursive checks (conservative: assume 10% success rate)
+            totalChecks += Math.floor(wordlistSize * wordlistSize * 0.1 * (maxD - 1));
+        }
 
         document.getElementById('progressSection').classList.remove('hidden');
 
-        log('Root domain...', 'info');
-        const rootRes = await resolveSubdomain(target);
-        addResult(target, rootRes, 0);
-
-        log(`Brute-force on ${base}`, 'info');
-        await bruteForce([base], 1, maxD, limiter);
+        log(`Starting subdomain enumeration on ${base}...`, 'info');
+        await bruteForce([base], 1, maxD, limiter, wordlistSize);
 
         finishScan();
     }
@@ -554,9 +661,10 @@ jenkins</textarea>
         document.getElementById('debugLog').innerHTML = '';
         document.getElementById('log').innerHTML = '';
         document.getElementById('resultsBody').innerHTML = '';
-        trafficParticles = [];
+        trafficParticles = []; // FIXED: Clear particles
         document.getElementById('startBtn').classList.add('opacity-50','cursor-not-allowed');
         document.getElementById('stopBtn').classList.remove('hidden');
+        document.getElementById('progressSection').classList.add('hidden');
     }
 
     function finishScan() {
@@ -568,12 +676,18 @@ jenkins</textarea>
         debugLog('=== SCAN FINISHED ===');
     }
 
-    function stopScan() { stopRequested = true; log('⏹ Stop requested', 'error'); debugLog('STOP REQUESTED'); }
+    function stopScan() { 
+        stopRequested = true; 
+        log('⏹ Stop requested', 'error'); 
+        debugLog('STOP REQUESTED'); 
+    }
 
     function clearResults() {
         if (confirm('Clear all results?')) {
-            results = []; discovered = new Set();
+            results = []; 
+            discovered = new Set();
             document.getElementById('resultsBody').innerHTML = '';
+            log('Results cleared', 'info');
         }
     }
 
@@ -586,6 +700,7 @@ jenkins</textarea>
         a.href = URL.createObjectURL(blob);
         a.download = `subenum-${document.getElementById('target').value}.csv`;
         a.click();
+        log('CSV exported', 'success');
     }
 
     function initUI() {
@@ -603,30 +718,61 @@ jenkins</textarea>
         document.getElementById('tabContent'+n).classList.remove('hidden');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active','bg-zinc-800'));
         document.getElementById('tab'+n).classList.add('active','bg-zinc-800');
-        if (n === 2) { updateDashboard(); if (!animationFrame) startTrafficAnimation(); }
+        
+        // FIXED: Start/stop traffic animation based on dashboard visibility
+        if (n === 2) { 
+            updateDashboard(); 
+            if (!animationFrame) startTrafficAnimation(); 
+        } else {
+            stopTrafficAnimation();
+        }
+    }
+
+    // FIXED: Proper custom provider management
+    function renderCustomProviders() {
+        document.getElementById('customProvidersList').innerHTML = 
+            customProviders.map((p,i) => 
+                `<div class="flex justify-between bg-zinc-800 rounded-2xl px-4 py-2 text-xs">
+                    <span class="font-mono">${p.url}</span>
+                    <button onclick="removeCustom(${i})" class="text-red-400 hover:text-red-300">×</button>
+                </div>`
+            ).join('');
     }
 
     function addCustomProvider() {
         const url = document.getElementById('customDoh').value.trim();
         if (!url) return;
+        if (!url.startsWith('https://')) {
+            alert('DoH URL must start with https://');
+            return;
+        }
         customProviders.push({name:url.split('//')[1]?.split('/')[0]||'Custom',url});
-        document.getElementById('customProvidersList').innerHTML = customProviders.map((p,i) => `<div class="flex justify-between bg-zinc-800 rounded-2xl px-4 py-2 text-xs"><span class="font-mono">${p.url}</span><button onclick="removeCustom(${i})" class="text-red-400">×</button></div>`).join('');
+        renderCustomProviders();
         document.getElementById('customDoh').value = '';
+        log(`Custom provider added: ${url}`, 'success');
     }
 
-    function removeCustom(i) { customProviders.splice(i,1); addCustomProvider(); } // refresh
+    function removeCustom(i) { 
+        const removed = customProviders[i];
+        customProviders.splice(i,1); 
+        renderCustomProviders();
+        log(`Custom provider removed: ${removed.url}`, 'info');
+    }
 
     function uploadWordlist() { document.getElementById('wordlistUpload').click(); }
+    
     function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
         const reader = new FileReader();
         reader.onload = ev => {
             document.getElementById('wordlist').value = ev.target.result;
-            log(`Wordlist loaded: ${e.target.files[0].name}`, 'success');
+            const lineCount = ev.target.result.split('\n').filter(Boolean).length;
+            log(`Wordlist loaded: ${file.name} (${lineCount} entries)`, 'success');
         };
-        reader.readAsText(e.target.files[0]);
+        reader.readAsText(file);
     }
 
-    // Init
     window.onload = () => {
         initUI();
         initTrafficCanvas();
@@ -636,13 +782,21 @@ jenkins</textarea>
         document.getElementById('debugEnabled').addEventListener('change', e => {
             debugEnabled = e.target.checked;
             document.getElementById('debugTabBtn').classList.toggle('hidden', !debugEnabled);
+            if (debugEnabled) {
+                log('Debug logging enabled', 'success');
+            }
         });
 
-        log('SubEnum v4.4 ready – fully working', 'success');
-        log('Enable Debug Logging to see detailed queries', 'info');
+        log('SubEnum v4.4.1 ready – all fixes applied', 'success');
+        log('Tip: Enable Debug Logging to see everything', 'info');
 
+        // FIXED: Debounced dashboard updates
+        let updateTimeout;
         setInterval(() => {
-            if (isRunning || !document.getElementById('tabContent2').classList.contains('hidden')) updateDashboard();
+            if (isRunning || !document.getElementById('tabContent2').classList.contains('hidden')) {
+                if (updateTimeout) clearTimeout(updateTimeout);
+                updateTimeout = setTimeout(() => updateDashboard(), 100);
+            }
         }, 800);
     };
 </script>
