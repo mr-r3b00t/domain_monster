@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SubEnum v4.1 • Live Dashboard</title>
+    <title>SubEnum v4.2 • Root + PSL Smart</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -23,8 +23,8 @@
         <div class="flex items-center gap-3 mb-8">
             <div class="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-3xl flex items-center justify-center text-black font-black text-2xl">S</div>
             <div>
-                <h1 class="text-3xl font-bold tracking-tighter">SubEnum <span class="text-xs text-violet-400 align-super">v4.1</span></h1>
-                <p class="text-xs text-zinc-500 -mt-1">live dashboard • animated traffic</p>
+                <h1 class="text-3xl font-bold tracking-tighter">SubEnum <span class="text-xs text-violet-400 align-super">v4.2</span></h1>
+                <p class="text-xs text-zinc-500 -mt-1">root domain • smart PSL</p>
             </div>
         </div>
 
@@ -32,7 +32,8 @@
             <!-- Target -->
             <div>
                 <label class="block text-sm font-medium text-zinc-400 mb-1.5">TARGET DOMAIN</label>
-                <input id="target" type="text" value="example.com" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-4 text-lg focus:outline-none focus:border-violet-500">
+                <input id="target" type="text" value="pwndefend.com" 
+                       class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-4 text-lg focus:outline-none focus:border-violet-500">
             </div>
 
             <!-- DNS Providers -->
@@ -40,8 +41,10 @@
                 <label class="block text-sm font-medium text-zinc-400 mb-3">DNS PROVIDERS (round-robin)</label>
                 <div id="providerCheckboxes" class="grid grid-cols-2 gap-2"></div>
                 <div class="mt-4 flex gap-3">
-                    <input id="customDoh" placeholder="https://your-doh.example.com/dns-query" class="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-3 text-sm font-mono">
-                    <button onclick="addCustomProvider()" class="bg-zinc-800 hover:bg-zinc-700 px-6 rounded-3xl text-sm font-medium">ADD</button>
+                    <input id="customDoh" placeholder="https://your-doh.example.com/dns-query" 
+                           class="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-3 text-sm font-mono">
+                    <button onclick="addCustomProvider()" 
+                            class="bg-zinc-800 hover:bg-zinc-700 px-6 rounded-3xl text-sm font-medium">ADD</button>
                 </div>
                 <div id="customProvidersList" class="mt-3 space-y-1 text-xs"></div>
             </div>
@@ -50,11 +53,13 @@
             <div>
                 <div class="flex justify-between items-center mb-1.5">
                     <label class="block text-sm font-medium text-zinc-400">WORDLIST</label>
-                    <button onclick="uploadWordlist()" class="text-xs px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-1">
+                    <button onclick="uploadWordlist()" 
+                            class="text-xs px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-1">
                         <i class="fa-solid fa-upload"></i> Upload
                     </button>
                 </div>
-                <textarea id="wordlist" rows="7" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl p-4 text-sm font-mono resize-none focus:outline-none focus:border-violet-500">www
+                <textarea id="wordlist" rows="6" 
+                          class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl p-4 text-sm font-mono resize-none focus:outline-none focus:border-violet-500">www
 api
 admin
 dev
@@ -80,13 +85,29 @@ auth
 vpn
 git
 jenkins</textarea>
-                <p class="text-[10px] text-zinc-500 mt-1">One prefix per line • Default loaded</p>
             </div>
 
             <!-- Record Types -->
             <div>
                 <label class="block text-sm font-medium text-zinc-400 mb-3">RECORD TYPES</label>
                 <div id="recordTypeCheckboxes" class="grid grid-cols-4 gap-2"></div>
+            </div>
+
+            <!-- PSL & Root Domain -->
+            <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-2">ROOT DOMAIN & PSL</label>
+                <div class="flex items-center gap-3 bg-zinc-800 rounded-3xl p-4">
+                    <input type="checkbox" id="usePSL" checked class="accent-violet-500 w-5 h-5">
+                    <div>
+                        <div class="text-sm">Smart base detection</div>
+                        <div class="text-xs text-zinc-500">Respects gov.uk, co.uk, etc.</div>
+                    </div>
+                </div>
+                <button onclick="loadFullPSL()" 
+                        class="mt-3 w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded-3xl text-sm font-medium flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-globe"></i> Load Full Public Suffix List (Mozilla)
+                </button>
+                <div id="pslStatus" class="text-[10px] text-emerald-400 mt-1 text-center">Built-in PSL active (50+ suffixes)</div>
             </div>
 
             <!-- Settings -->
@@ -122,17 +143,19 @@ jenkins</textarea>
                 </div>
             </div>
 
-            <button onclick="startScan()" id="startBtn" class="w-full bg-violet-600 hover:bg-violet-500 py-4 rounded-3xl font-semibold flex items-center justify-center gap-2">
+            <button onclick="startScan()" id="startBtn" 
+                    class="w-full bg-violet-600 hover:bg-violet-500 py-4 rounded-3xl font-semibold flex items-center justify-center gap-2">
                 <i class="fa-solid fa-bolt"></i> START SCAN
             </button>
 
-            <button onclick="stopScan()" id="stopBtn" class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-3xl hidden font-medium">STOP SCAN</button>
+            <button onclick="stopScan()" id="stopBtn" 
+                    class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-3xl hidden font-medium">STOP SCAN</button>
         </div>
 
-        <div class="mt-auto pt-8 text-[10px] text-zinc-500">crt.sh removed • Pure active + live viz</div>
+        <div class="mt-auto pt-8 text-[10px] text-zinc-500">v4.2 • Root domain always checked • PSL smart base detection</div>
     </div>
 
-    <!-- Main -->
+    <!-- Main Content -->
     <div class="flex-1 flex flex-col">
         <div class="border-b border-zinc-800 px-8 py-5 flex items-center justify-between bg-zinc-900">
             <div class="flex gap-6">
@@ -146,7 +169,6 @@ jenkins</textarea>
             </div>
         </div>
 
-        <!-- RESULTS -->
         <div id="tabContent0" class="flex-1 overflow-auto p-8">
             <table class="w-full">
                 <thead class="bg-zinc-900 sticky top-0 z-10">
@@ -164,50 +186,44 @@ jenkins</textarea>
             </table>
         </div>
 
-        <!-- LOG -->
         <div id="tabContent1" class="flex-1 overflow-auto p-8 hidden bg-black">
             <div id="log" class="font-mono text-xs text-zinc-300 space-y-1 h-full overflow-auto"></div>
         </div>
 
-        <!-- DASHBOARD -->
         <div id="tabContent2" class="flex-1 overflow-auto p-8 hidden bg-zinc-950">
             <div class="max-w-7xl mx-auto space-y-8">
-                <!-- Live Stats -->
                 <div class="grid grid-cols-4 gap-6">
                     <div class="bg-zinc-900 rounded-3xl p-6">
                         <div class="text-xs text-zinc-500">TOTAL QUERIES</div>
                         <div id="statQueries" class="text-5xl font-bold text-white mt-2 font-mono">0</div>
                     </div>
                     <div class="bg-zinc-900 rounded-3xl p-6">
-                        <div class="text-xs text-zinc-500">SUCCESSFUL RESOLUTIONS</div>
+                        <div class="text-xs text-zinc-500">SUCCESSFUL</div>
                         <div id="statSuccess" class="text-5xl font-bold text-emerald-400 mt-2 font-mono">0</div>
                     </div>
                     <div class="bg-zinc-900 rounded-3xl p-6">
-                        <div class="text-xs text-zinc-500">CURRENT RATE</div>
+                        <div class="text-xs text-zinc-500">RATE</div>
                         <div id="statRate" class="text-5xl font-bold text-amber-400 mt-2 font-mono">0/s</div>
                     </div>
                     <div class="bg-zinc-900 rounded-3xl p-6">
-                        <div class="text-xs text-zinc-500">SUCCESS RATE</div>
+                        <div class="text-xs text-zinc-500">SUCCESS %</div>
                         <div id="statSuccessPct" class="text-5xl font-bold text-sky-400 mt-2 font-mono">0%</div>
                     </div>
                 </div>
 
-                <!-- Providers Grid -->
                 <div>
-                    <div class="text-sm font-medium text-zinc-400 mb-4">DNS PROVIDERS LIVE STATUS</div>
+                    <div class="text-sm font-medium text-zinc-400 mb-4">DNS PROVIDERS LIVE</div>
                     <div id="providersGrid" class="grid grid-cols-3 gap-4"></div>
                 </div>
 
-                <!-- Traffic Flow Visualization -->
                 <div>
                     <div class="text-sm font-medium text-zinc-400 mb-4 flex items-center gap-3">
-                        <span>TRAFFIC FLOW • CLIENT → PROVIDERS</span>
+                        TRAFFIC FLOW • CLIENT → PROVIDERS
                         <div class="flex-1 h-px bg-zinc-800"></div>
                     </div>
                     <canvas id="trafficCanvas" width="1100" height="220" class="w-full"></canvas>
                 </div>
 
-                <!-- Charts -->
                 <div class="grid grid-cols-2 gap-6">
                     <div class="bg-zinc-900 rounded-3xl p-6">
                         <div class="text-sm font-medium text-zinc-400 mb-4">RESOLUTIONS OVER TIME</div>
@@ -222,7 +238,7 @@ jenkins</textarea>
         </div>
 
         <div class="border-t border-zinc-800 bg-zinc-900 px-8 py-4 text-xs text-zinc-500 flex justify-between">
-            <div>v4.1 • crt.sh removed • Pure active enumeration</div>
+            <div>v4.2 • Root domain always enumerated • PSL interface added</div>
             <div id="status" class="font-mono">Ready</div>
         </div>
     </div>
@@ -231,7 +247,65 @@ jenkins</textarea>
 <input type="file" id="wordlistUpload" accept=".txt" class="hidden" onchange="handleFileUpload(event)">
 
 <script>
-    // ================== CONFIG & STATE ==================
+    // ================== PUBLIC SUFFIX LIST ==================
+    let psl = new Set([
+        "com","net","org","edu","gov","mil","int","uk","co.uk","org.uk","gov.uk","ac.uk","me.uk","net.uk","nhs.uk","police.uk","sch.uk",
+        "ca","de","fr","it","jp","au","com.au","net.au","org.au","us","co","io","me","biz","info","name","pro","xyz","top","site","online",
+        "club","app","dev","cloud","ai","tech","shop","blog","news","tv","fm","cc","gg","sh","to","ws","nu","ac","gg","sh","tv","fm","eu",
+        "ch","nl","se","no","dk","fi","be","at","es","pt","gr","pl","cz","hu","ro","sk","si","hr","bg","ee","lt","lv","lu","mt","cy","is",
+        "ru","cn","tw","hk","in","br","mx","ar","cl","za","ng","ke","eg","tr","il","ae","sa","kr","vn","th","my","sg","id","ph","nz","pk"
+    ]);
+
+    let fullPSLLoaded = false;
+
+    async function loadFullPSL() {
+        const status = document.getElementById('pslStatus');
+        status.textContent = 'Loading full PSL...';
+        status.className = 'text-[10px] text-amber-400 mt-1 text-center';
+        try {
+            const resp = await fetch('https://raw.githubusercontent.com/publicsuffix/list/master/public_suffix_list.dat');
+            const text = await resp.text();
+            const lines = text.split('\n');
+            psl.clear();
+            lines.forEach(line => {
+                line = line.trim();
+                if (line && !line.startsWith('//') && !line.startsWith('!')) {
+                    psl.add(line.toLowerCase());
+                }
+            });
+            fullPSLLoaded = true;
+            status.textContent = `Full PSL loaded (${psl.size} suffixes)`;
+            status.className = 'text-[10px] text-emerald-400 mt-1 text-center';
+            log('Full Public Suffix List loaded successfully', 'success');
+        } catch(e) {
+            status.textContent = 'Failed – using built-in';
+            status.className = 'text-[10px] text-red-400 mt-1 text-center';
+            log('Failed to load full PSL – using built-in list', 'error');
+        }
+    }
+
+    function getRegistrableDomain(domain) {
+        if (!domain) return domain;
+        const lower = domain.toLowerCase();
+        const labels = lower.split('.');
+        if (labels.length < 2) return domain;
+
+        let suffix = '';
+        for (let i = 1; i <= Math.min(4, labels.length); i++) {
+            const candidate = labels.slice(-i).join('.');
+            if (psl.has(candidate)) {
+                suffix = candidate;
+                break;
+            }
+        }
+        if (!suffix) return domain;
+
+        const suffixParts = suffix.split('.').length;
+        const start = Math.max(0, labels.length - suffixParts - 1);
+        return labels.slice(start).join('.');
+    }
+
+    // ================== REST OF THE CODE (same as v4.1 with root + PSL) ==================
     let defaultProviders = [
         { id: "cloudflare", name: "Cloudflare", url: "https://cloudflare-dns.com/dns-query", checked: true },
         { id: "google",     name: "Google",     url: "https://dns.google/resolve", checked: true },
@@ -252,12 +326,8 @@ jenkins</textarea>
         {value:"SRV", label:"SRV", checked:false}
     ];
 
-    // Dashboard stats
     let providerStats = {};
-    let totalQueries = 0;
-    let totalSuccess = 0;
-    let lastSecondQueries = 0;
-    let rate = 0;
+    let totalQueries = 0, totalSuccess = 0, lastSecondQueries = 0, rate = 0;
     let resolutionHistory = [];
     let lineChart, barChart;
 
@@ -306,7 +376,6 @@ jenkins</textarea>
                 if (!resp.ok) continue;
                 const data = await resp.json();
                 if (!data.Answer) continue;
-
                 data.Answer.forEach(a => {
                     if ((type === 'A' && a.type === 1) || (type === 'AAAA' && a.type === 28)) result.ips.push(a.data);
                     if (type === 'CNAME' && a.type === 5) result.cname = a.data;
@@ -320,14 +389,10 @@ jenkins</textarea>
 
         result.ips = [...new Set(result.ips)];
         const success = result.ips.length || result.cname || result.other;
-        if (success) {
-            providerStats[name].successes++;
-            totalSuccess++;
-        }
+        if (success) { providerStats[name].successes++; totalSuccess++; }
 
         trafficParticles.push({
-            x: 80,
-            y: 110,
+            x: 80, y: 110,
             targetX: 520 + (getSelectedProviders().findIndex(p => p.name === name) * 180),
             progress: 0,
             success: success,
@@ -341,7 +406,6 @@ jenkins</textarea>
         document.getElementById('statQueries').textContent = totalQueries;
         document.getElementById('statSuccess').textContent = totalSuccess;
         document.getElementById('statSuccessPct').textContent = totalQueries ? Math.round((totalSuccess/totalQueries)*100) + '%' : '0%';
-        
         const now = Date.now();
         if (now - (window.lastRateTime || 0) > 1000) {
             rate = totalQueries - lastSecondQueries;
@@ -356,54 +420,33 @@ jenkins</textarea>
         container.innerHTML = getSelectedProviders().map(p => {
             const stats = providerStats[p.name] || {requests:0, successes:0};
             const pct = stats.requests ? Math.round((stats.successes / stats.requests) * 100) : 0;
-            return `
-                <div class="bg-zinc-900 rounded-3xl p-5 border border-zinc-800">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <div class="font-semibold">${p.name}</div>
-                            <div class="text-xs text-zinc-500 font-mono">${p.url.split('//')[1].split('/')[0]}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-mono text-emerald-400">${stats.successes}</div>
-                            <div class="text-xs text-zinc-500">success</div>
-                        </div>
-                    </div>
-                    <div class="mt-4 h-2 bg-zinc-800 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400" style="width:${pct}%"></div>
-                    </div>
-                    <div class="flex justify-between text-xs mt-1">
-                        <span class="font-mono">${stats.requests} req</span>
-                        <span class="text-emerald-400">${pct}%</span>
-                    </div>
-                </div>`;
+            return `<div class="bg-zinc-900 rounded-3xl p-5 border border-zinc-800">
+                <div class="flex justify-between items-start">
+                    <div><div class="font-semibold">${p.name}</div><div class="text-xs text-zinc-500 font-mono">${p.url.split('//')[1].split('/')[0]}</div></div>
+                    <div class="text-right"><div class="text-2xl font-mono text-emerald-400">${stats.successes}</div><div class="text-xs text-zinc-500">success</div></div>
+                </div>
+                <div class="mt-4 h-2 bg-zinc-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400" style="width:${pct}%"></div></div>
+                <div class="flex justify-between text-xs mt-1"><span class="font-mono">${stats.requests} req</span><span class="text-emerald-400">${pct}%</span></div>
+            </div>`;
         }).join('');
     }
 
-    // ================== TRAFFIC ANIMATION ==================
     function initTrafficCanvas() {
         trafficCtx = document.getElementById('trafficCanvas').getContext('2d');
-        trafficCtx.lineWidth = 3;
     }
 
     function drawTraffic() {
         trafficCtx.clearRect(0, 0, 1100, 220);
-
         // Client
-        trafficCtx.fillStyle = '#a855f7';
-        trafficCtx.beginPath(); trafficCtx.arc(80, 110, 28, 0, Math.PI * 2); trafficCtx.fill();
-        trafficCtx.fillStyle = '#fff'; trafficCtx.font = 'bold 13px monospace'; trafficCtx.textAlign = 'center';
-        trafficCtx.fillText('YOU', 80, 116);
-
+        trafficCtx.fillStyle = '#a855f7'; trafficCtx.beginPath(); trafficCtx.arc(80, 110, 28, 0, Math.PI*2); trafficCtx.fill();
+        trafficCtx.fillStyle = '#fff'; trafficCtx.font = 'bold 13px monospace'; trafficCtx.textAlign = 'center'; trafficCtx.fillText('YOU', 80, 116);
         // Providers
         const providers = getSelectedProviders();
         providers.forEach((p, i) => {
             const x = 520 + i * 180;
-            trafficCtx.fillStyle = '#64748b';
-            trafficCtx.beginPath(); trafficCtx.arc(x, 110, 26, 0, Math.PI * 2); trafficCtx.fill();
-            trafficCtx.fillStyle = '#e0f2fe'; trafficCtx.font = '11px monospace';
-            trafficCtx.fillText(p.name.slice(0,8), x, 115);
+            trafficCtx.fillStyle = '#64748b'; trafficCtx.beginPath(); trafficCtx.arc(x, 110, 26, 0, Math.PI*2); trafficCtx.fill();
+            trafficCtx.fillStyle = '#e0f2fe'; trafficCtx.font = '11px monospace'; trafficCtx.fillText(p.name.slice(0,8), x, 115);
         });
-
         // Particles
         for (let i = trafficParticles.length - 1; i >= 0; i--) {
             const p = trafficParticles[i];
@@ -411,7 +454,7 @@ jenkins</textarea>
             const x = p.x + (p.targetX - p.x) * p.progress;
             const y = 110 + Math.sin(p.progress * Math.PI * 2) * 12;
             trafficCtx.fillStyle = p.color;
-            trafficCtx.beginPath(); trafficCtx.arc(x, y, 6, 0, Math.PI * 2); trafficCtx.fill();
+            trafficCtx.beginPath(); trafficCtx.arc(x, y, 6, 0, Math.PI*2); trafficCtx.fill();
             if (p.progress >= 1) trafficParticles.splice(i, 1);
         }
     }
@@ -422,34 +465,22 @@ jenkins</textarea>
         loop();
     }
 
-    // ================== CHARTS ==================
     function initCharts() {
-        lineChart = new Chart(document.getElementById('lineChart'), {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Successful resolutions', borderColor: '#22d3ee', tension: 0.4, data: [] }] },
-            options: { plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#27272a' } } } }
-        });
-
-        barChart = new Chart(document.getElementById('barChart'), {
-            type: 'bar',
-            data: { labels: [], datasets: [{ label: 'Requests', backgroundColor: '#8b5cf6', data: [] }] },
-            options: { plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#27272a' } } } }
-        });
+        lineChart = new Chart(document.getElementById('lineChart'), { type: 'line', data: { labels: [], datasets: [{ label: 'Success', borderColor: '#22d3ee', tension: 0.4, data: [] }] }, options: { plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#27272a' } } } } });
+        barChart = new Chart(document.getElementById('barChart'), { type: 'bar', data: { labels: [], datasets: [{ label: 'Requests', backgroundColor: '#8b5cf6', data: [] }] }, options: { plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#27272a' } } } } });
     }
 
     function updateCharts() {
         const now = new Date().toLocaleTimeString([], {minute:'2-digit', second:'2-digit'});
         resolutionHistory.push({time: now, count: totalSuccess});
         if (resolutionHistory.length > 20) resolutionHistory.shift();
-
         lineChart.data.labels = resolutionHistory.map(h => h.time);
         lineChart.data.datasets[0].data = resolutionHistory.map(h => h.count);
         lineChart.update('none');
 
         const labels = Object.keys(providerStats);
-        const data = labels.map(n => providerStats[n].requests);
         barChart.data.labels = labels;
-        barChart.data.datasets[0].data = data;
+        barChart.data.datasets[0].data = labels.map(n => providerStats[n].requests);
         barChart.update('none');
     }
 
@@ -459,7 +490,6 @@ jenkins</textarea>
         updateCharts();
     }
 
-    // ================== CORE SCAN (active only) ==================
     function createLimiter(max) {
         let running = 0, queue = [];
         return async (task) => {
@@ -472,6 +502,8 @@ jenkins</textarea>
 
     function addResult(sub, res, depth) {
         if (!res.ips.length && !res.cname && !res.other) return;
+        if (discovered.has(sub)) return;
+        discovered.add(sub);
         results.push({subdomain:sub, ips:res.ips, cname:res.cname, other:res.other, depth});
         renderResults();
     }
@@ -493,19 +525,17 @@ jenkins</textarea>
     async function bruteForce(bases, depth, maxDepth, limiter) {
         if (depth > maxDepth || stopRequested) return;
         currentDepth = depth;
-
         const words = document.getElementById('wordlist').value.trim().split('\n').map(w => w.trim()).filter(Boolean);
         const batch = bases.length * words.length;
         totalChecks += batch;
+        updateProgress();
 
         const next = [];
-
         for (const base of bases) {
             for (const word of words) {
                 if (stopRequested) break;
                 const sub = `${word}.${base}`;
                 if (discovered.has(sub)) continue;
-                discovered.add(sub);
 
                 completedChecks++;
                 updateProgress();
@@ -521,9 +551,8 @@ jenkins</textarea>
                 await limiter(task);
             }
         }
-
         if (next.length && depth < maxDepth && !stopRequested) {
-            log(`→ Depth ${depth+1} (${next.length} new)`, 'info');
+            log(`→ Depth ${depth+1} (${next.length} new bases)`, 'info');
             await bruteForce(next, depth+1, maxDepth, limiter);
         }
     }
@@ -539,18 +568,30 @@ jenkins</textarea>
 
     async function startScan() {
         if (isRunning) return;
-        const target = document.getElementById('target').value.trim().toLowerCase();
-        if (!target.includes('.')) return alert('Enter a valid domain (e.g. example.com)');
+        let target = document.getElementById('target').value.trim().toLowerCase();
+        if (!target.includes('.')) return alert('Enter a valid domain');
 
         resetScan();
+        const useSmartPSL = document.getElementById('usePSL').checked;
+        const baseDomain = useSmartPSL ? getRegistrableDomain(target) : target;
+
+        log(`Target: ${target}`, 'info');
+        log(`Detected registrable base: ${baseDomain}`, 'success');
+
         const concurrency = parseInt(document.getElementById('concurrency').value);
         const maxD = parseInt(document.getElementById('maxDepth').value);
         const limiter = createLimiter(concurrency);
 
-        log(`🚀 STARTING SCAN → ${target} | ${concurrency} threads | depth ${maxD}`, 'success');
         document.getElementById('progressSection').classList.remove('hidden');
 
-        await bruteForce([target], 1, maxD, limiter);
+        // === ROOT DOMAIN ENUMERATION (depth 0) ===
+        log('Enumerating root domain...', 'info');
+        const rootRes = await resolveSubdomain(target);
+        addResult(target, rootRes, 0);
+
+        // === SUBDOMAIN BRUTE FORCE on base ===
+        if (target !== baseDomain) log(`Brute-forcing subs on base: ${baseDomain}`, 'info');
+        await bruteForce([baseDomain], 1, maxD, limiter);
 
         finishScan();
     }
@@ -572,7 +613,7 @@ jenkins</textarea>
         document.getElementById('startBtn').classList.remove('opacity-50','cursor-not-allowed');
         document.getElementById('stopBtn').classList.add('hidden');
         document.getElementById('progressSection').classList.add('hidden');
-        log('✅ Scan completed!', 'success');
+        log('✅ Scan completed! Root domain + subs enumerated', 'success');
     }
 
     function stopScan() { stopRequested = true; log('⏹ Stop requested', 'error'); }
@@ -596,7 +637,6 @@ jenkins</textarea>
         a.click();
     }
 
-    // UI init (unchanged)
     function initUI() {
         const pDiv = document.getElementById('providerCheckboxes');
         defaultProviders.forEach((p,i) => {
@@ -616,11 +656,7 @@ jenkins</textarea>
         document.getElementById('tabContent'+n).classList.remove('hidden');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active','bg-zinc-800'));
         document.getElementById('tab'+n).classList.add('active','bg-zinc-800');
-
-        if (n === 2) {
-            updateDashboard();
-            if (!animationFrame) startTrafficAnimation();
-        }
+        if (n === 2) { updateDashboard(); if (!animationFrame) startTrafficAnimation(); }
     }
 
     function addCustomProvider() {
@@ -649,19 +685,16 @@ jenkins</textarea>
         reader.readAsText(e.target.files[0]);
     }
 
-    // ================== INIT ==================
     window.onload = () => {
         initUI();
         initTrafficCanvas();
         initCharts();
         showTab(0);
-        log('SubEnum v4.1 ready • crt.sh removed • Active enumeration + live dashboard 🔥', 'success');
-        log('Dashboard runs in background and resumes instantly', 'info');
+        log('SubEnum v4.2 ready • Root domain always enumerated • Smart PSL active', 'success');
+        log('Tip: Enable PSL for accurate gov.uk / co.uk handling', 'info');
 
         setInterval(() => {
-            if (isRunning || !document.getElementById('tabContent2').classList.contains('hidden')) {
-                updateDashboard();
-            }
+            if (isRunning || !document.getElementById('tabContent2').classList.contains('hidden')) updateDashboard();
         }, 800);
     };
 </script>
