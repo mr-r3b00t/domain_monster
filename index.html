@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SubEnum v4 • Dashboard + Live Viz</title>
+    <title>SubEnum v4.1 • Live Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -18,12 +18,12 @@
 </head>
 <body class="bg-zinc-950 text-zinc-200">
 <div class="min-h-screen flex">
-    <!-- Sidebar (unchanged) -->
+    <!-- Sidebar -->
     <div class="w-96 bg-zinc-900 border-r border-zinc-800 p-6 flex flex-col overflow-y-auto">
         <div class="flex items-center gap-3 mb-8">
             <div class="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-3xl flex items-center justify-center text-black font-black text-2xl">S</div>
             <div>
-                <h1 class="text-3xl font-bold tracking-tighter">SubEnum <span class="text-xs text-violet-400 align-super">v4</span></h1>
+                <h1 class="text-3xl font-bold tracking-tighter">SubEnum <span class="text-xs text-violet-400 align-super">v4.1</span></h1>
                 <p class="text-xs text-zinc-500 -mt-1">live dashboard • animated traffic</p>
             </div>
         </div>
@@ -122,17 +122,14 @@ jenkins</textarea>
                 </div>
             </div>
 
-            <div class="flex gap-3">
-                <button onclick="startFullScan()" id="startBtn" class="flex-1 bg-violet-600 hover:bg-violet-500 py-4 rounded-3xl font-semibold flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-bolt"></i> FULL SCAN
-                </button>
-                <button onclick="runPassiveOnly()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-4 rounded-3xl font-semibold">PASSIVE ONLY</button>
-            </div>
+            <button onclick="startScan()" id="startBtn" class="w-full bg-violet-600 hover:bg-violet-500 py-4 rounded-3xl font-semibold flex items-center justify-center gap-2">
+                <i class="fa-solid fa-bolt"></i> START SCAN
+            </button>
 
             <button onclick="stopScan()" id="stopBtn" class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-3xl hidden font-medium">STOP SCAN</button>
         </div>
 
-        <div class="mt-auto pt-8 text-[10px] text-zinc-500">Live dashboard runs in background</div>
+        <div class="mt-auto pt-8 text-[10px] text-zinc-500">crt.sh removed • Pure active + live viz</div>
     </div>
 
     <!-- Main -->
@@ -172,7 +169,7 @@ jenkins</textarea>
             <div id="log" class="font-mono text-xs text-zinc-300 space-y-1 h-full overflow-auto"></div>
         </div>
 
-        <!-- DASHBOARD - NEW GRAPHIC VISUALIZATION -->
+        <!-- DASHBOARD -->
         <div id="tabContent2" class="flex-1 overflow-auto p-8 hidden bg-zinc-950">
             <div class="max-w-7xl mx-auto space-y-8">
                 <!-- Live Stats -->
@@ -225,7 +222,7 @@ jenkins</textarea>
         </div>
 
         <div class="border-t border-zinc-800 bg-zinc-900 px-8 py-4 text-xs text-zinc-500 flex justify-between">
-            <div>v4 • Dashboard runs in background • Powered by DoH + Canvas</div>
+            <div>v4.1 • crt.sh removed • Pure active enumeration</div>
             <div id="status" class="font-mono">Ready</div>
         </div>
     </div>
@@ -255,13 +252,13 @@ jenkins</textarea>
         {value:"SRV", label:"SRV", checked:false}
     ];
 
-    // Stats for dashboard
-    let providerStats = {}; // name → {requests:0, successes:0}
+    // Dashboard stats
+    let providerStats = {};
     let totalQueries = 0;
     let totalSuccess = 0;
     let lastSecondQueries = 0;
     let rate = 0;
-    let resolutionHistory = []; // [{time, count}]
+    let resolutionHistory = [];
     let lineChart, barChart;
 
     let isRunning = false, stopRequested = false;
@@ -297,7 +294,6 @@ jenkins</textarea>
         const result = { ips: [], cname: null, other: '' };
         const {url, name} = getNextDoHUrl();
 
-        // Track provider request
         if (!providerStats[name]) providerStats[name] = {requests:0, successes:0};
         providerStats[name].requests++;
         totalQueries++;
@@ -329,7 +325,6 @@ jenkins</textarea>
             totalSuccess++;
         }
 
-        // Create traffic particle
         trafficParticles.push({
             x: 80,
             y: 110,
@@ -393,65 +388,48 @@ jenkins</textarea>
     function drawTraffic() {
         trafficCtx.clearRect(0, 0, 1100, 220);
 
-        // Client node
+        // Client
         trafficCtx.fillStyle = '#a855f7';
-        trafficCtx.beginPath();
-        trafficCtx.arc(80, 110, 28, 0, Math.PI * 2);
-        trafficCtx.fill();
-        trafficCtx.fillStyle = '#fff';
-        trafficCtx.font = 'bold 13px monospace';
-        trafficCtx.textAlign = 'center';
+        trafficCtx.beginPath(); trafficCtx.arc(80, 110, 28, 0, Math.PI * 2); trafficCtx.fill();
+        trafficCtx.fillStyle = '#fff'; trafficCtx.font = 'bold 13px monospace'; trafficCtx.textAlign = 'center';
         trafficCtx.fillText('YOU', 80, 116);
 
-        // Providers nodes
+        // Providers
         const providers = getSelectedProviders();
         providers.forEach((p, i) => {
             const x = 520 + i * 180;
             trafficCtx.fillStyle = '#64748b';
-            trafficCtx.beginPath();
-            trafficCtx.arc(x, 110, 26, 0, Math.PI * 2);
-            trafficCtx.fill();
-
-            trafficCtx.fillStyle = '#e0f2fe';
-            trafficCtx.font = '11px monospace';
+            trafficCtx.beginPath(); trafficCtx.arc(x, 110, 26, 0, Math.PI * 2); trafficCtx.fill();
+            trafficCtx.fillStyle = '#e0f2fe'; trafficCtx.font = '11px monospace';
             trafficCtx.fillText(p.name.slice(0,8), x, 115);
         });
 
-        // Draw moving particles
+        // Particles
         for (let i = trafficParticles.length - 1; i >= 0; i--) {
             const p = trafficParticles[i];
             p.progress += 0.028;
             const x = p.x + (p.targetX - p.x) * p.progress;
             const y = 110 + Math.sin(p.progress * Math.PI * 2) * 12;
-
             trafficCtx.fillStyle = p.color;
-            trafficCtx.beginPath();
-            trafficCtx.arc(x, y, 6, 0, Math.PI * 2);
-            trafficCtx.fill();
-
+            trafficCtx.beginPath(); trafficCtx.arc(x, y, 6, 0, Math.PI * 2); trafficCtx.fill();
             if (p.progress >= 1) trafficParticles.splice(i, 1);
         }
     }
 
     function startTrafficAnimation() {
         if (animationFrame) cancelAnimationFrame(animationFrame);
-        function loop() {
-            drawTraffic();
-            animationFrame = requestAnimationFrame(loop);
-        }
+        function loop() { drawTraffic(); animationFrame = requestAnimationFrame(loop); }
         loop();
     }
 
     // ================== CHARTS ==================
     function initCharts() {
-        // Line chart
         lineChart = new Chart(document.getElementById('lineChart'), {
             type: 'line',
             data: { labels: [], datasets: [{ label: 'Successful resolutions', borderColor: '#22d3ee', tension: 0.4, data: [] }] },
             options: { plugins: { legend: { display: false } }, scales: { y: { grid: { color: '#27272a' } } } }
         });
 
-        // Bar chart
         barChart = new Chart(document.getElementById('barChart'), {
             type: 'bar',
             data: { labels: [], datasets: [{ label: 'Requests', backgroundColor: '#8b5cf6', data: [] }] },
@@ -460,7 +438,6 @@ jenkins</textarea>
     }
 
     function updateCharts() {
-        // Line chart
         const now = new Date().toLocaleTimeString([], {minute:'2-digit', second:'2-digit'});
         resolutionHistory.push({time: now, count: totalSuccess});
         if (resolutionHistory.length > 20) resolutionHistory.shift();
@@ -469,7 +446,6 @@ jenkins</textarea>
         lineChart.data.datasets[0].data = resolutionHistory.map(h => h.count);
         lineChart.update('none');
 
-        // Bar chart
         const labels = Object.keys(providerStats);
         const data = labels.map(n => providerStats[n].requests);
         barChart.data.labels = labels;
@@ -483,7 +459,7 @@ jenkins</textarea>
         updateCharts();
     }
 
-    // ================== CORE SCAN FUNCTIONS (same as before) ==================
+    // ================== CORE SCAN (active only) ==================
     function createLimiter(max) {
         let running = 0, queue = [];
         return async (task) => {
@@ -492,27 +468,6 @@ jenkins</textarea>
             try { await task(); }
             finally { running--; if (queue.length) queue.shift()(); }
         };
-    }
-
-    async function passiveCrtSh(target) {
-        log('Fetching passive from crt.sh...', 'info');
-        try {
-            const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://crt.sh/?q=%25.${target}&output=json`)}`);
-            const data = await resp.json();
-            const certs = JSON.parse(data.contents);
-            const found = new Set();
-            certs.forEach(c => c.name_value.split('\n').forEach(s => {
-                const clean = s.trim().toLowerCase();
-                if (clean.endsWith('.' + target)) found.add(clean);
-            }));
-            log(`crt.sh → ${found.size} passive`, 'success');
-            for (const sub of found) {
-                if (discovered.has(sub)) continue;
-                discovered.add(sub);
-                const res = await resolveSubdomain(sub);
-                addResult(sub, res, 0);
-            }
-        } catch(e) { log('crt.sh skipped', 'error'); }
     }
 
     function addResult(sub, res, depth) {
@@ -582,32 +537,21 @@ jenkins</textarea>
         document.getElementById('currentDepth').textContent = currentDepth;
     }
 
-    async function startFullScan() {
+    async function startScan() {
         if (isRunning) return;
         const target = document.getElementById('target').value.trim().toLowerCase();
-        if (!target) return alert('Enter domain');
+        if (!target.includes('.')) return alert('Enter a valid domain (e.g. example.com)');
 
         resetScan();
         const concurrency = parseInt(document.getElementById('concurrency').value);
         const maxD = parseInt(document.getElementById('maxDepth').value);
         const limiter = createLimiter(concurrency);
 
-        log(`🚀 FULL SCAN → ${target} | ${concurrency} threads | depth ${maxD}`, 'success');
+        log(`🚀 STARTING SCAN → ${target} | ${concurrency} threads | depth ${maxD}`, 'success');
         document.getElementById('progressSection').classList.remove('hidden');
 
-        await passiveCrtSh(target);
         await bruteForce([target], 1, maxD, limiter);
 
-        finishScan();
-    }
-
-    async function runPassiveOnly() {
-        if (isRunning) return;
-        const target = document.getElementById('target').value.trim().toLowerCase();
-        if (!target) return;
-        resetScan();
-        log(`Passive scan → ${target}`, 'success');
-        await passiveCrtSh(target);
         finishScan();
     }
 
@@ -628,7 +572,7 @@ jenkins</textarea>
         document.getElementById('startBtn').classList.remove('opacity-50','cursor-not-allowed');
         document.getElementById('stopBtn').classList.add('hidden');
         document.getElementById('progressSection').classList.add('hidden');
-        log('✅ Scan finished • Dashboard updated live', 'success');
+        log('✅ Scan completed!', 'success');
     }
 
     function stopScan() { stopRequested = true; log('⏹ Stop requested', 'error'); }
@@ -641,7 +585,7 @@ jenkins</textarea>
         }
     }
 
-    function exportCSV() { /* unchanged from previous */ 
+    function exportCSV() {
         if (!results.length) return alert('No results');
         let csv = 'Subdomain,IPs,CNAME,Other,Depth\n';
         results.forEach(r => csv += `"${r.subdomain}","${r.ips.join('; ')}","${r.cname || ''}","${r.other || ''}",${r.depth}\n`);
@@ -652,7 +596,7 @@ jenkins</textarea>
         a.click();
     }
 
-    // UI helpers (same as before)
+    // UI init (unchanged)
     function initUI() {
         const pDiv = document.getElementById('providerCheckboxes');
         defaultProviders.forEach((p,i) => {
@@ -711,12 +655,11 @@ jenkins</textarea>
         initTrafficCanvas();
         initCharts();
         showTab(0);
-        log('SubEnum v4 ready • Live Dashboard + animated traffic flow enabled 🔥', 'success');
+        log('SubEnum v4.1 ready • crt.sh removed • Active enumeration + live dashboard 🔥', 'success');
         log('Dashboard runs in background and resumes instantly', 'info');
 
-        // Live update loop (background)
         setInterval(() => {
-            if (isRunning || document.getElementById('tabContent2').classList.contains('hidden') === false) {
+            if (isRunning || !document.getElementById('tabContent2').classList.contains('hidden')) {
                 updateDashboard();
             }
         }, 800);
