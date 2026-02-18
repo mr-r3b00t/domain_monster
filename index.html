@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubEnum v3.1 • Multi-DoH • Multi-Record</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+        body { font-family: 'Space Grotesk', sans-serif; }
+        .log-line { font-family: ui-monospace, monospace; }
+        .pill { transition: all 0.2s; }
+        .pill:hover { transform: translateY(-1px); }
+    </style>
+</head>
+<body class="bg-zinc-950 text-zinc-200">
+<div class="min-h-screen flex">
+    <!-- Sidebar -->
+    <div class="w-96 bg-zinc-900 border-r border-zinc-800 p-6 flex flex-col overflow-y-auto">
+        <div class="flex items-center gap-3 mb-8">
+            <div class="w-10 h-10 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-3xl flex items-center justify-center text-black font-black text-2xl">S</div>
+            <div>
+                <h1 class="text-3xl font-bold tracking-tighter">SubEnum <span class="text-xs text-violet-400 align-super">v3.1</span></h1>
+                <p class="text-xs text-zinc-500 -mt-1">multi-provider • multi-record • recursive</p>
+            </div>
+        </div>
+
+        <div class="space-y-7">
+            <!-- Target -->
+            <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-1.5">TARGET DOMAIN</label>
+                <input id="target" type="text" value="example.com" 
+                       class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-4 text-lg focus:outline-none focus:border-violet-500">
+            </div>
+
+            <!-- DNS Providers -->
+            <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-3">DNS PROVIDERS (round-robin load balancing)</label>
+                <div id="providerCheckboxes" class="grid grid-cols-2 gap-2"></div>
+                
+                <div class="mt-4 flex gap-3">
+                    <input id="customDoh" placeholder="https://your-doh.example.com/dns-query" 
+                           class="flex-1 bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-3 text-sm font-mono">
+                    <button onclick="addCustomProvider()" 
+                            class="bg-zinc-800 hover:bg-zinc-700 px-6 rounded-3xl text-sm font-medium">ADD</button>
+                </div>
+                <div id="customProvidersList" class="mt-3 space-y-1 text-xs"></div>
+            </div>
+
+            <!-- WORDLIST (RESTORED) -->
+            <div>
+                <div class="flex justify-between items-center mb-1.5">
+                    <label class="block text-sm font-medium text-zinc-400">WORDLIST</label>
+                    <button onclick="uploadWordlist()" 
+                            class="text-xs px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded-xl flex items-center gap-1">
+                        <i class="fa-solid fa-upload"></i> Upload
+                    </button>
+                </div>
+                <textarea id="wordlist" rows="7" 
+                          class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl p-4 text-sm font-mono resize-none focus:outline-none focus:border-violet-500">www
+api
+admin
+dev
+test
+staging
+prod
+beta
+demo
+shop
+blog
+app
+mobile
+login
+portal
+dashboard
+cdn
+static
+assets
+media
+internal
+secure
+auth
+vpn
+git
+jenkins
+jira
+cloud
+aws
+azure
+gcp</textarea>
+                <p class="text-[10px] text-zinc-500 mt-1">One prefix per line • Default 30 common entries loaded</p>
+            </div>
+
+            <!-- Record Types -->
+            <div>
+                <label class="block text-sm font-medium text-zinc-400 mb-3">RECORD TYPES (multi-select)</label>
+                <div id="recordTypeCheckboxes" class="grid grid-cols-4 gap-2"></div>
+            </div>
+
+            <!-- Settings -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs text-zinc-400 mb-1">CONCURRENCY</label>
+                    <input id="concurrency" type="range" min="5" max="100" value="25" class="w-full accent-violet-500">
+                    <div id="concurrencyValue" class="text-center text-sm font-mono text-violet-400">25</div>
+                </div>
+                <div>
+                    <label class="block text-xs text-zinc-400 mb-1">MAX DEPTH</label>
+                    <select id="maxDepth" class="w-full bg-zinc-800 border border-zinc-700 rounded-3xl px-5 py-4 text-sm">
+                        <option value="1">1</option>
+                        <option value="2" selected>2 (recommended)</option>
+                        <option value="3">3</option>
+                        <option value="4">4 (aggressive)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div id="progressSection" class="hidden">
+                <div class="flex justify-between text-xs text-zinc-400 mb-1">
+                    <span>PROGRESS</span>
+                    <span id="progressPercent" class="font-mono text-violet-400">0%</span>
+                </div>
+                <div class="h-2.5 bg-zinc-800 rounded-full overflow-hidden">
+                    <div id="progressBar" class="h-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-400 w-0 transition-all duration-300"></div>
+                </div>
+                <div class="mt-1 flex justify-between text-[10px] font-mono text-zinc-500">
+                    <span>Depth <span id="currentDepth">1</span>/<span id="maxD">2</span></span>
+                    <span><span id="checksDone">0</span>/<span id="checksTotal">0</span></span>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="startFullScan()" id="startBtn"
+                        class="flex-1 bg-violet-600 hover:bg-violet-500 py-4 rounded-3xl font-semibold flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-bolt"></i> FULL SCAN
+                </button>
+                <button onclick="runPassiveOnly()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 py-4 rounded-3xl font-semibold">PASSIVE ONLY</button>
+            </div>
+
+            <button onclick="stopScan()" id="stopBtn" class="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-3xl hidden font-medium">STOP SCAN</button>
+        </div>
+
+        <div class="mt-auto pt-8 text-[10px] text-zinc-500">Client-side • Round-robin DoH • Fixed wordlist + resolution</div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col">
+        <div class="border-b border-zinc-800 px-8 py-5 flex items-center justify-between bg-zinc-900">
+            <div class="flex gap-6">
+                <button onclick="showTab(0)" id="tab0" class="tab-btn active px-6 py-2 rounded-3xl text-sm font-medium">RESULTS</button>
+                <button onclick="showTab(1)" id="tab1" class="tab-btn px-6 py-2 rounded-3xl text-sm font-medium">LOG</button>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="clearResults()" class="px-5 py-2 text-xs border border-zinc-700 rounded-3xl hover:bg-zinc-800">CLEAR</button>
+                <button onclick="exportCSV()" class="px-5 py-2 text-xs bg-zinc-800 hover:bg-zinc-700 rounded-3xl">EXPORT CSV</button>
+            </div>
+        </div>
+
+        <div id="tabContent0" class="flex-1 overflow-auto p-8">
+            <table class="w-full">
+                <thead class="bg-zinc-900 sticky top-0 z-10">
+                    <tr class="text-xs text-zinc-400 border-b border-zinc-800">
+                        <th class="py-5 px-6 text-left">#</th>
+                        <th class="py-5 px-6 text-left">SUBDOMAIN</th>
+                        <th class="py-5 px-6 text-left">IPs</th>
+                        <th class="py-5 px-6 text-left">CNAME</th>
+                        <th class="py-5 px-6 text-left">OTHER RECORDS</th>
+                        <th class="py-5 px-6 text-left">DEPTH</th>
+                        <th class="py-5 px-6 w-20"></th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody" class="text-sm divide-y divide-zinc-800"></tbody>
+            </table>
+        </div>
+
+        <div id="tabContent1" class="flex-1 overflow-auto p-8 hidden bg-black">
+            <div id="log" class="font-mono text-xs text-zinc-300 space-y-1 h-full overflow-auto"></div>
+        </div>
+
+        <div class="border-t border-zinc-800 bg-zinc-900 px-8 py-4 text-xs text-zinc-500 flex justify-between">
+            <div>Fixed: Wordlist restored • Resolution working again</div>
+            <div id="status" class="font-mono">Ready</div>
+        </div>
+    </div>
+</div>
+
+<input type="file" id="wordlistUpload" accept=".txt" class="hidden" onchange="handleFileUpload(event)">
+
+<script>
+    // ================== CONFIG ==================
+    let defaultProviders = [
+        { id: "cloudflare", name: "Cloudflare", url: "https://cloudflare-dns.com/dns-query", checked: true },
+        { id: "google",     name: "Google",     url: "https://dns.google/resolve", checked: true },
+        { id: "quad9",      name: "Quad9",      url: "https://dns.quad9.net/dns-query", checked: false },
+        { id: "adguard",    name: "AdGuard",    url: "https://dns.adguard.com/dns-query", checked: false },
+        { id: "mullvad",    name: "Mullvad",    url: "https://doh.mullvad.net/dns-query", checked: false },
+        { id: "controlD",   name: "Control D",  url: "https://dns.controld.com/dns-query", checked: false }
+    ];
+
+    let customProviders = [];
+    let providerIndex = 0;
+
+    const recordTypeList = [
+        {value:"A", label:"A", checked:true},
+        {value:"AAAA", label:"AAAA", checked:true},
+        {value:"CNAME", label:"CNAME", checked:true},
+        {value:"MX", label:"MX", checked:false},
+        {value:"NS", label:"NS", checked:false},
+        {value:"TXT", label:"TXT", checked:false},
+        {value:"SRV", label:"SRV", checked:false}
+    ];
+
+    // ================== STATE ==================
+    let isRunning = false, stopRequested = false;
+    let results = [], discovered = new Set();
+    let totalChecks = 0, completedChecks = 0, currentDepth = 0;
+
+    const logEl = document.getElementById('log');
+    const resultsBody = document.getElementById('resultsBody');
+
+    function log(msg, type='info') {
+        const t = new Date().toLocaleTimeString('en-US',{hour12:false});
+        const cls = type==='success'?'text-emerald-400':type==='error'?'text-red-400':'text-zinc-400';
+        logEl.innerHTML += `<div class="log-line ${cls}">[${t}] ${msg}</div>`;
+        logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function getSelectedProviders() {
+        const active = [...defaultProviders.filter(p => p.checked), ...customProviders];
+        return active.length ? active : [defaultProviders[0]];
+    }
+
+    function getNextDoHUrl() {
+        const list = getSelectedProviders();
+        const url = list[providerIndex % list.length].url;
+        providerIndex = (providerIndex + 1) % list.length;
+        return url;
+    }
+
+    async function resolveSubdomain(sub) {
+        const selectedTypes = Array.from(document.querySelectorAll('#recordTypeCheckboxes input:checked')).map(c => c.value);
+        const result = { ips: [], cname: null, other: '' };
+
+        for (const type of selectedTypes) {
+            try {
+                const resp = await fetch(`${getNextDoHUrl()}?name=${encodeURIComponent(sub)}&type=${type}`, {
+                    headers: { 'Accept': 'application/dns-json' }
+                });
+                if (!resp.ok) continue;
+                const data = await resp.json();
+                if (!data.Answer) continue;
+
+                data.Answer.forEach(a => {
+                    if ((type === 'A' && a.type === 1) || (type === 'AAAA' && a.type === 28)) {
+                        result.ips.push(a.data);
+                    }
+                    if (type === 'CNAME' && a.type === 5) result.cname = a.data;
+                    if (['MX','NS','TXT','SRV'].includes(type) && a.data) {
+                        if (result.other) result.other += ', ';
+                        result.other += `${type}:${a.data}`;
+                    }
+                });
+            } catch(e){}
+        }
+        result.ips = [...new Set(result.ips)];
+        return result;
+    }
+
+    function updateProgress() {
+        const pct = totalChecks ? Math.floor((completedChecks / totalChecks) * 100) : 0;
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('progressPercent').textContent = pct + '%';
+        document.getElementById('checksDone').textContent = completedChecks;
+        document.getElementById('checksTotal').textContent = totalChecks;
+        document.getElementById('currentDepth').textContent = currentDepth;
+        document.getElementById('maxD').textContent = document.getElementById('maxDepth').value;
+    }
+
+    function addResult(sub, res, depth) {
+        if (res.ips.length === 0 && !res.cname && !res.other) return;
+        results.push({subdomain:sub, ips:res.ips, cname:res.cname, other:res.other, depth});
+        renderResults();
+    }
+
+    function renderResults() {
+        resultsBody.innerHTML = results.map((r,i) => `
+            <tr class="hover:bg-zinc-800/50 transition-colors">
+                <td class="py-4 px-6 text-zinc-500">${i+1}</td>
+                <td class="py-4 px-6 font-medium text-violet-300">${r.subdomain}</td>
+                <td class="py-4 px-6 text-xs font-mono">${r.ips.join('<br>') || '—'}</td>
+                <td class="py-4 px-6 text-xs font-mono text-amber-300">${r.cname || '—'}</td>
+                <td class="py-4 px-6 text-xs font-mono text-sky-300">${r.other || '—'}</td>
+                <td class="py-4 px-6 text-center"><span class="px-3 py-1 bg-zinc-800 rounded-full text-xs">${r.depth}</span></td>
+                <td class="py-4 px-6">
+                    <a href="https://${r.subdomain}" target="_blank" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-external-link-alt"></i></a>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    async function passiveCrtSh(target) {
+        log('Fetching passive subdomains from crt.sh...', 'info');
+        try {
+            const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://crt.sh/?q=%25.${target}&output=json`)}`);
+            const data = await resp.json();
+            const certs = JSON.parse(data.contents);
+            const found = new Set();
+            certs.forEach(c => c.name_value.split('\n').forEach(s => {
+                const clean = s.trim().toLowerCase();
+                if (clean.endsWith('.' + target)) found.add(clean);
+            }));
+            log(`crt.sh → ${found.size} passive subs`, 'success');
+            for (const sub of found) {
+                if (discovered.has(sub)) continue;
+                discovered.add(sub);
+                const res = await resolveSubdomain(sub);
+                addResult(sub, res, 0);
+            }
+        } catch(e) { log('crt.sh unavailable', 'error'); }
+    }
+
+    function createLimiter(max) {
+        let running = 0, queue = [];
+        return async (task) => {
+            if (running >= max) await new Promise(r => queue.push(r));
+            running++;
+            try { await task(); }
+            finally {
+                running--;
+                if (queue.length) queue.shift()();
+            }
+        };
+    }
+
+    async function bruteForce(bases, depth, maxDepth, limiter) {
+        if (depth > maxDepth || stopRequested) return;
+        currentDepth = depth;
+
+        const wordlistEl = document.getElementById('wordlist');
+        const words = wordlistEl ? 
+            wordlistEl.value.trim().split('\n').map(w => w.trim()).filter(Boolean) : 
+            ['www','api','dev','test','admin','staging','prod'];
+
+        const batch = bases.length * words.length;
+        totalChecks += batch;
+        updateProgress();
+
+        const next = [];
+
+        for (const base of bases) {
+            for (const word of words) {
+                if (stopRequested) break;
+                const sub = `${word}.${base}`;
+                if (discovered.has(sub)) continue;
+                discovered.add(sub);
+
+                completedChecks++;
+                updateProgress();
+
+                const task = async () => {
+                    const res = await resolveSubdomain(sub);
+                    if (res.ips.length || res.cname || res.other) {
+                        log(`✓ ${sub} (${res.ips.length} IPs)`, 'success');
+                        addResult(sub, res, depth);
+                        next.push(sub);
+                    }
+                };
+                await limiter(task);
+            }
+        }
+
+        if (next.length && depth < maxDepth && !stopRequested) {
+            log(`→ Recursing depth ${depth+1} (${next.length} new bases)`, 'info');
+            await bruteForce(next, depth+1, maxDepth, limiter);
+        }
+    }
+
+    async function startFullScan() {
+        if (isRunning) return;
+        const target = document.getElementById('target').value.trim().toLowerCase();
+        if (!target.includes('.')) return alert('Enter a valid domain (e.g. example.com)');
+
+        resetScan();
+        const concurrency = parseInt(document.getElementById('concurrency').value);
+        const maxD = parseInt(document.getElementById('maxDepth').value);
+        const limiter = createLimiter(concurrency);
+
+        log(`🚀 Full scan → ${target} | ${concurrency} threads | depth ${maxD} | ${getSelectedProviders().length} providers`, 'success');
+        document.getElementById('progressSection').classList.remove('hidden');
+
+        await passiveCrtSh(target);
+        await bruteForce([target], 1, maxD, limiter);
+
+        finishScan();
+    }
+
+    async function runPassiveOnly() {
+        if (isRunning) return;
+        const target = document.getElementById('target').value.trim().toLowerCase();
+        if (!target) return;
+        resetScan();
+        log(`Passive-only scan → ${target}`, 'success');
+        await passiveCrtSh(target);
+        finishScan();
+    }
+
+    function resetScan() {
+        isRunning = true; stopRequested = false;
+        results = []; discovered = new Set();
+        totalChecks = completedChecks = 0;
+        resultsBody.innerHTML = ''; logEl.innerHTML = '';
+        document.getElementById('startBtn').classList.add('opacity-50','cursor-not-allowed');
+        document.getElementById('stopBtn').classList.remove('hidden');
+    }
+
+    function finishScan() {
+        isRunning = false;
+        document.getElementById('startBtn').classList.remove('opacity-50','cursor-not-allowed');
+        document.getElementById('stopBtn').classList.add('hidden');
+        document.getElementById('progressSection').classList.add('hidden');
+        log('✅ Scan completed!', 'success');
+    }
+
+    function stopScan() { stopRequested = true; log('⏹ Stop requested – finishing current batch', 'error'); }
+
+    function clearResults() {
+        if (confirm('Clear all results?')) {
+            results = []; discovered = new Set();
+            resultsBody.innerHTML = '';
+        }
+    }
+
+    function exportCSV() {
+        if (!results.length) return alert('No results to export');
+        let csv = 'Subdomain,IPs,CNAME,Other Records,Depth\n';
+        results.forEach(r => {
+            csv += `"${r.subdomain}","${r.ips.join('; ')}","${r.cname || ''}","${r.other || ''}",${r.depth}\n`;
+        });
+        const blob = new Blob([csv], {type:'text/csv'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `subenum-${document.getElementById('target').value || 'target'}.csv`;
+        a.click();
+    }
+
+    function addCustomProvider() {
+        const url = document.getElementById('customDoh').value.trim();
+        if (!url) return;
+        customProviders.push({name: url.split('//')[1]?.split('/')[0] || url, url});
+        renderCustomProviders();
+        document.getElementById('customDoh').value = '';
+    }
+
+    function renderCustomProviders() {
+        const container = document.getElementById('customProvidersList');
+        container.innerHTML = customProviders.map((p,i) => `
+            <div class="flex items-center justify-between bg-zinc-800 rounded-2xl px-4 py-2">
+                <span class="font-mono truncate">${p.url}</span>
+                <button onclick="removeCustom(${i})" class="text-red-400 hover:text-red-300 text-lg leading-none">×</button>
+            </div>
+        `).join('');
+    }
+
+    function removeCustom(i) {
+        customProviders.splice(i,1);
+        renderCustomProviders();
+    }
+
+    function initUI() {
+        // Providers
+        const pDiv = document.getElementById('providerCheckboxes');
+        defaultProviders.forEach((p,i) => {
+            pDiv.innerHTML += `
+                <label class="pill flex items-center gap-2 bg-zinc-800 px-4 py-3 rounded-3xl cursor-pointer">
+                    <input type="checkbox" ${p.checked?'checked':''} onchange="defaultProviders[${i}].checked=this.checked" class="accent-violet-500">
+                    <span class="text-sm">${p.name}</span>
+                </label>`;
+        });
+
+        // Record types
+        const rDiv = document.getElementById('recordTypeCheckboxes');
+        recordTypeList.forEach((r,i) => {
+            rDiv.innerHTML += `
+                <label class="pill flex items-center gap-2 bg-zinc-800 px-4 py-3 rounded-3xl cursor-pointer">
+                    <input type="checkbox" value="${r.value}" ${r.checked?'checked':''} class="accent-violet-500">
+                    <span class="text-sm">${r.label}</span>
+                </label>`;
+        });
+
+        document.getElementById('concurrency').addEventListener('input', e => {
+            document.getElementById('concurrencyValue').textContent = e.target.value;
+        });
+    }
+
+    function showTab(n) {
+        document.querySelectorAll('[id^="tabContent"]').forEach(el => el.classList.add('hidden'));
+        document.getElementById('tabContent'+n).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active','bg-zinc-800'));
+        document.getElementById('tab'+n).classList.add('active','bg-zinc-800');
+    }
+
+    function uploadWordlist() { document.getElementById('wordlistUpload').click(); }
+
+    function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+            document.getElementById('wordlist').value = ev.target.result;
+            log(`Custom wordlist loaded: ${file.name} (${ev.target.result.split('\n').length} entries)`, 'success');
+        };
+        reader.readAsText(file);
+    }
+
+    window.onload = () => {
+        initUI();
+        showTab(0);
+        log('SubEnum v3.1 ready • Wordlist restored + DNS resolution fixed 🔥', 'success');
+        log('Tip: Select multiple providers & record types for maximum coverage', 'info');
+    };
+</script>
+</body>
+</html>
